@@ -117,26 +117,27 @@ onValue(ref(db, "pengajuan"), snap => {
   totalAll = 0;
 
   snap.forEach(p => {
-    const d = p.val();
+  const d = p.val();
+  if (!d.items) return;
 
-    // hanya yang approved (opsional, bisa dihapus kalau mau semua)
-    if (d.status !== "approved") return;
+  const items = Object.values(d.items);
 
-    d.items.forEach(i => {
-      totalAll += i.subtotal;
+  items.forEach(i => {
+    totalAll += Number(i.subtotal || 0);
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${d.kostory}</td>
-          <td>${i.nama}</td>
-          <td>${i.volume}</td>
-          <td>${i.satuan}</td>
-          <td>Rp ${i.harga.toLocaleString()}</td>
-          <td>Rp ${i.subtotal.toLocaleString()}</td>
-        </tr>
-      `;
-    });
+    tbody.innerHTML += `
+      <tr>
+        <td>${d.kostory}</td>
+        <td>${i.nama}</td>
+        <td>${i.volume}</td>
+        <td>${i.satuan}</td>
+        <td>Rp ${Number(i.harga).toLocaleString()}</td>
+        <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
+      </tr>
+    `;
   });
+});
+
 
   document.getElementById("grandTotal").innerText =
     "Rp " + totalAll.toLocaleString();
