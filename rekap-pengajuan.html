@@ -112,31 +112,10 @@ const db = getDatabase(app);
 let totalAll = 0;
 
 onValue(ref(db, "pengajuan"), snap => {
-  const tbody = document.getElementById("rekap");
-  tbody.innerHTML = "";
-  totalAll = 0;
-
-  snap.forEach(p => {
-  const d = p.val();
-  if (!d.items) return;
-
-  const items = Object.values(d.items);
-
-  items.forEach(i => {
-    totalAll += Number(i.subtotal || 0);
-
-    tbody.innerHTML += `
-      <tr>
-        <td>${d.kostory}</td>
-        <td>${i.nama}</td>
-        <td>${i.volume}</td>
-        <td>${i.satuan}</td>
-        <td>Rp ${Number(i.harga).toLocaleString()}</td>
-        <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
-      </tr>
-    `;
-  });
+  console.log("SNAP EXISTS =", snap.exists());
+  console.log("RAW VALUE =", snap.val());
 });
+
 
 
   document.getElementById("grandTotal").innerText =
