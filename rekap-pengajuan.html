@@ -150,28 +150,24 @@ button {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+/* FIREBASE */
 const app = initializeApp({
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
   databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "sewudin-543e0"
 });
-
 const db = getDatabase(app);
 
+/* STATE */
 let allData = [];
 let activeKostory = [];
 
-/* default bulan sekarang */
+/* DEFAULT BULAN */
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
-/* ambil kostory sesuai DB kamu */
-function getKostory(d) {
-  return d.items && d.items.kostory ? d.items.kostory : null;
-}
-
-/* load data */
-onValue(ref(db,"pengajuan"), snap => {
+/* LOAD DATA APPROVED */
+onValue(ref(db, "pengajuan"), snap => {
   allData = [];
   snap.forEach(p => {
     const d = p.val();
@@ -179,20 +175,17 @@ onValue(ref(db,"pengajuan"), snap => {
       allData.push(d);
     }
   });
-  renderChips();
+
+  renderKostoryChips();
   applyFilter();
 });
 
-/* render chip */
-function renderChips() {
+/* RENDER CHIP KOSTORY (DARI ROOT) */
+function renderKostoryChips() {
   kostoryChips.innerHTML = "";
   activeKostory = [];
 
-  const set = new Set();
-  allData.forEach(d => {
-    const k = getKostory(d);
-    if (k) set.add(k);
-  });
+  const set = new Set(allData.map(d => d.kostory).filter(Boolean));
 
   set.forEach(k => {
     const chip = document.createElement("div");
@@ -214,19 +207,18 @@ function renderChips() {
   });
 }
 
-/* auto filter */
+/* AUTO FILTER (TANPA TOMBOL) */
 bulanFilter.addEventListener("change", applyFilter);
 
 function applyFilter() {
   const data = allData.filter(d =>
     d.bulan === bulanFilter.value &&
-    activeKostory.includes(getKostory(d))
+    activeKostory.includes(d.kostory)
   );
-
   renderTable(data);
 }
 
-/* render table */
+/* RENDER TABEL */
 function renderTable(data) {
   rekapBody.innerHTML = "";
   let total = 0;
@@ -236,7 +228,7 @@ function renderTable(data) {
     rekapBody.innerHTML += `
       <tr>
         <td>${d.bulan}</td>
-        <td>${getKostory(d)}</td>
+        <td>${d.kostory}</td>
         <td>Rp ${Number(d.total).toLocaleString()}</td>
       </tr>
     `;
