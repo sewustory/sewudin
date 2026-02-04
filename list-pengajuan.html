@@ -151,6 +151,10 @@ button {
 
 
     <select id="filterTahun"></select>
+    <select id="filterKostory">
+  <option value="">Semua Kostory</option>
+</select>
+
   </div>
 </div>
 
@@ -181,15 +185,16 @@ let email = "";
   
 const filterBulan = document.getElementById("filterBulan");
 const filterTahun = document.getElementById("filterTahun");
-
+const filterKostory = document.getElementById("filterKostory");
+filterKostory.onchange = loadPengajuan;
+filterBulan.onchange   = loadPengajuan;
+filterTahun.onchange   = loadPengajuan;
+  
 const tahunSekarang = new Date().getFullYear();
 filterTahun.innerHTML = `<option value="">Semua Tahun</option>`;
 for (let t = tahunSekarang; t >= tahunSekarang - 5; t--) {
   filterTahun.innerHTML += `<option value="${t}">${t}</option>`;
 }
-
-filterBulan.onchange = loadPengajuan;
-filterTahun.onchange = loadPengajuan;
 
 onAuthStateChanged(auth, async user => {
   if (!user) location.href = "login.html";
