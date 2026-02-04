@@ -217,17 +217,24 @@ function loadPengajuan() {
     list.innerHTML = "";
 
     let data = [];
+    const kostorySet = new Set();
 
     snap.forEach(p => {
       const d = p.val();
 
       if (role === "karyawan" && d.oleh !== email) return;
+      
+kostorySet.add(d.kostory);
 
       data.push({
         id: p.key,
         ...d
       });
     });
+filterKostory.innerHTML = `<option value="">Semua Kostory</option>`;
+[...kostorySet].sort().forEach(k => {
+  filterKostory.innerHTML += `<option value="${k}">${k}</option>`;
+});
 
     // SORTING:
     // 1. pending di atas
@@ -241,10 +248,12 @@ function loadPengajuan() {
     data.forEach(d => {
       const bulanFilter = filterBulan.value;
 const tahunFilter = filterTahun.value;
+const kostoryFilter = filterKostory.value;
 
 // contoh d.bulan = "Desember 2025"
 if (bulanFilter && !d.bulan.includes(bulanFilter)) return;
 if (tahunFilter && !d.bulan.includes(tahunFilter)) return;
+if (kostoryFilter && d.kostory !== kostoryFilter) return;
 
       list.innerHTML += `
         <div class="card">
