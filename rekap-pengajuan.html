@@ -40,7 +40,7 @@ label {
   margin-bottom:6px;
 }
 
-input {
+select {
   padding:10px;
   border-radius:6px;
   border:1px solid #ccc;
@@ -100,12 +100,7 @@ button {
   background:#22c55e;
   color:#fff;
 }
-  
-input[type="month"] {
-  padding: initial;
-  height: auto;
-}
-  
+
 @media print {
   header, .filter-card {
     display:none;
@@ -123,7 +118,7 @@ input[type="month"] {
   <!-- FILTER -->
   <div class="card filter-card">
     <label>Bulan & Tahun</label>
- <select id="bulanFilter"></select>
+    <select id="bulanFilter"></select>
 
     <br><br>
 
@@ -137,16 +132,14 @@ input[type="month"] {
   <div class="card">
     <table>
       <thead>
-  <tr>
-    <th>Kostory</th>
-    <th>Item</th>
-    <th>Volume</th>
-    <th>Harga</th>
-    <th>Subtotal</th>
-  </tr>
-</thead>
-
-
+        <tr>
+          <th>Kostory</th>
+          <th>Item</th>
+          <th>Volume</th>
+          <th>Harga</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
       <tbody id="rekapBody"></tbody>
     </table>
 
@@ -172,20 +165,27 @@ const db = getDatabase(app);
 let allData = [];
 let activeKostory = [];
 
-/* LOAD DATA APPROVED */
+/* LOAD DATA */
 onValue(ref(db, "pengajuan"), snap => {
   allData = [];
+
   snap.forEach(p => {
     const d = p.val();
     if (d.status === "approved") {
       allData.push(d);
     }
   });
-  
+
+  renderBulanOptions();
+  renderKostoryChips();
+  applyFilter();
+});
+
+/* BULAN OPTIONS */
 function renderBulanOptions() {
   const set = new Set(
     allData
-      .map(d => String(d.bulan).slice(0, 7))
+      .map(d => String(d.bulan).slice(0,7))
       .filter(Boolean)
   );
 
@@ -197,27 +197,18 @@ function renderBulanOptions() {
   }
 
   [...set].sort().forEach(b => {
-    bulanFilter.innerHTML += `
-      <option value="${b}">${b}</option>
-    `;
+    bulanFilter.innerHTML += `<option value="${b}">${b}</option>`;
   });
+
+  bulanFilter.value = [...set].sort().pop(); // auto pilih terbaru
 }
 
-  renderKostoryChips();
-  applyFilter();
-});
-
-/* RENDER CHIP KOSTORY (DARI ROOT) */
+/* KOSTORY CHIP */
 function renderKostoryChips() {
   kostoryChips.innerHTML = "";
   activeKostory = [];
 
   const set = new Set(allData.map(d => d.kostory).filter(Boolean));
-
-  if (set.size === 0) {
-    kostoryChips.innerHTML = "<i style='color:#999'>Tidak ada kostory</i>";
-    return;
-  }
 
   set.forEach(k => {
     const chip = document.createElement("div");
@@ -227,11 +218,9 @@ function renderKostoryChips() {
 
     chip.onclick = () => {
       chip.classList.toggle("active");
-      if (activeKostory.includes(k)) {
-        activeKostory = activeKostory.filter(x => x !== k);
-      } else {
-        activeKostory.push(k);
-      }
+      activeKostory = chip.classList.contains("active")
+        ? [...activeKostory, k]
+        : activeKostory.filter(x => x !== k);
       applyFilter();
     };
 
@@ -239,14 +228,14 @@ function renderKostoryChips() {
   });
 }
 
-/* AUTO FILTER */
+/* FILTER */
 bulanFilter.addEventListener("change", applyFilter);
 
 function applyFilter() {
   const data = allData.filter(d => {
     const cocokBulan =
-  !bulanFilter.value ||
-  String(d.bulan).slice(0,7) === String(bulanFilter.value);
+      !bulanFilter.value ||
+      String(d.bulan).slice(0,7) === bulanFilter.value;
 
     const cocokKostory =
       activeKostory.length === 0 || activeKostory.includes(d.kostory);
@@ -257,16 +246,23 @@ function applyFilter() {
   renderTable(data);
 }
 
-
-/* RENDER TABEL + DETAIL ITEM */
+/* TABLE */
 function renderTable(data) {
   rekapBody.innerHTML = "";
   let grand = 0;
 
-  data.forEach(d => {
-    const items = Array.isArray(d.items) ? d.items : [];
+  if (!data.length) {
+    rekapBody.innerHTML = `
+      <tr>
+        <td colspan="5" style="color:#999">Tidak ada data</td>
+      </tr>
+    `;
+    grandTotal.textContent = "Total: Rp 0";
+    return;
+  }
 
-    items.forEach(i => {
+  data.forEach(d => {
+    (Array.isArray(d.items) ? d.items : []).forEach(i => {
       rekapBody.innerHTML += `
         <tr>
           <td>${d.kostory}</td>
@@ -283,9 +279,7 @@ function renderTable(data) {
 
   grandTotal.textContent = "Total: Rp " + grand.toLocaleString();
 }
-
 </script>
-
 
 </body>
 </html>
