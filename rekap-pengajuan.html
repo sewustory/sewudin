@@ -153,7 +153,8 @@ function initFilter() {
   }
 }
 
-onValue(ref(db, "pengajuan"), snap => {
+function loadRekap() {
+  onValue(ref(db, "pengajuan"), snap => {
     const tbody = document.getElementById("rekap");
     tbody.innerHTML = "";
     totalAll = 0;
@@ -190,9 +191,11 @@ onValue(ref(db, "pengajuan"), snap => {
   });
 }
 initFilter();
+loadRekap();
 
 document.getElementById("filterTahun").addEventListener("change", loadRekap);
 document.getElementById("filterBulan").addEventListener("change", loadRekap);
+
 
 </script>
 
