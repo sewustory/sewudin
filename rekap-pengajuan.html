@@ -28,35 +28,24 @@ header {
 
 .card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 8px 16px rgba(0,0,0,.05);
+  box-shadow: 0 6px 14px rgba(0,0,0,.06);
 }
 
-/* ===== FILTER ===== */
-.filter-row {
-  display: flex;
-  gap: 24px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 260px;
-}
-
+/* FORM */
 label {
+  display: block;
   font-weight: bold;
-  font-size: 14px;
+  margin-bottom: 6px;
 }
 
 input, select {
+  width: 100%;
+  max-width: 320px;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
   background: #fff;
@@ -64,12 +53,16 @@ input, select {
 }
 
 select[multiple] {
-  height: 160px;
+  max-width: 100%;
+  height: 180px;
 }
 
-/* ===== BUTTON ===== */
+.form-group {
+  margin-bottom: 18px;
+}
+
+/* BUTTON */
 .actions {
-  margin-top: 16px;
   display: flex;
   gap: 12px;
 }
@@ -77,9 +70,9 @@ select[multiple] {
 button {
   padding: 10px 18px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 6px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -92,32 +85,30 @@ button {
   color: #fff;
 }
 
-/* ===== TABLE ===== */
+/* TABLE */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
 }
 
 th, td {
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e5e7eb;
   text-align: center;
 }
 
 th {
   background: #f1f5f9;
-  font-weight: bold;
 }
 
 .total {
+  margin-top: 14px;
   text-align: right;
   font-size: 18px;
   font-weight: bold;
-  margin-top: 14px;
 }
 
-/* ===== PRINT ===== */
+/* PRINT */
 @media print {
   header, .filter-card {
     display: none;
@@ -137,25 +128,25 @@ th {
 
   <!-- FILTER -->
   <div class="card filter-card">
-    <div class="filter-row">
-      <div class="field">
-        <label>Bulan & Tahun</label>
-        <input type="month" id="bulanFilter">
-      </div>
 
-      <div class="field">
-        <label>Kostory</label>
-        <select id="kostoryFilter" multiple></select>
-      </div>
+    <div class="form-group">
+      <label>Bulan & Tahun</label>
+      <input type="month" id="bulanFilter">
+    </div>
+
+    <div class="form-group">
+      <label>Kostory</label>
+      <select id="kostoryFilter" multiple></select>
     </div>
 
     <div class="actions">
       <button class="btn-primary" onclick="applyFilter()">Terapkan Filter</button>
       <button class="btn-success" onclick="window.print()">Cetak / PDF</button>
     </div>
+
   </div>
 
-  <!-- HASIL -->
+  <!-- RESULT -->
   <div class="card">
     <table>
       <thead>
@@ -197,8 +188,10 @@ const db = getDatabase(app);
 
 let allData = [];
 
+/* default bulan sekarang */
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
+/* load approved data */
 onValue(ref(db, "pengajuan"), snap => {
   allData = [];
   snap.forEach(p => {
@@ -254,7 +247,7 @@ function render(data) {
     });
   });
 
-  grandTotal.innerText = "Total: Rp " + total.toLocaleString();
+  grandTotal.textContent = "Total: Rp " + total.toLocaleString();
 }
 </script>
 
