@@ -66,6 +66,53 @@ button {
   color: #fff;
   cursor: pointer;
 }
+  /* =======================
+   MOBILE FIX PENGAJUAN
+======================= */
+@media (max-width: 768px) {
+
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Kecilkan input volume */
+  input[type="number"] {
+    width: 60px;
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  /* Lebar kolom disesuaikan */
+  th:nth-child(1),
+  td:nth-child(1) { width: 28%; }   /* Item */
+
+  th:nth-child(2),
+  td:nth-child(2) { width: 18%; }   /* Harga */
+
+  th:nth-child(3),
+  td:nth-child(3) { width: 14%; }   /* Satuan */
+
+  th:nth-child(4),
+  td:nth-child(4) { width: 16%; }   /* Volume */
+
+  th:nth-child(5),
+  td:nth-child(5) { width: 24%; }   /* Subtotal */
+}
+
 </style>
 </head>
 
