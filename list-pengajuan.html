@@ -229,10 +229,15 @@ function loadPengajuan() {
         ...d
       });
     });
+const selectedKostory = filterKostory.value;
+
 filterKostory.innerHTML = `<option value="">Semua Kostory</option>`;
 [...kostorySet].sort().forEach(k => {
   filterKostory.innerHTML += `<option value="${k}">${k}</option>`;
 });
+
+filterKostory.value = selectedKostory;
+
 
     // SORTING:
     // 1. pending di atas
