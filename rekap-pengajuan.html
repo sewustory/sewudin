@@ -95,6 +95,10 @@ tfoot td{
     </select>
   </label>
 </div>
+
+<div id="filterKostory"
+     style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap">
+</div>
   
 <table>
   <thead>
@@ -139,6 +143,7 @@ const db = getDatabase(app);
 const auth = getAuth(app);
   
 let totalAll = 0;
+let selectedKostory = new Set();
   
 function initFilter() {
   const tahunSelect = document.getElementById("filterTahun");
@@ -153,14 +158,60 @@ function initFilter() {
   }
 }
 
+function renderKostoryChips(kostoryList) {
+  const container = document.getElementById("filterKostory");
+  container.innerHTML = "";
+
+  kostoryList.forEach(kostory => {
+    const chip = document.createElement("div");
+    chip.textContent = kostory;
+
+    chip.style.padding = "6px 16px";
+    chip.style.border = "2px solid #ddd";
+    chip.style.borderRadius = "999px";
+    chip.style.cursor = "pointer";
+    chip.style.fontWeight = "bold";
+    chip.style.userSelect = "none";
+
+    chip.onclick = () => {
+      if (selectedKostory.has(kostory)) {
+        selectedKostory.delete(kostory);
+        chip.style.background = "#fff";
+        chip.style.borderColor = "#ddd";
+      } else {
+        selectedKostory.add(kostory);
+        chip.style.background = "#22c55e";
+        chip.style.borderColor = "#22c55e";
+        chip.style.color = "#fff";
+      }
+      loadRekap();
+    };
+
+    container.appendChild(chip);
+  });
+}
+  
 function loadRekap() {
   onValue(ref(db, "pengajuan"), snap => {
     const tbody = document.getElementById("rekap");
     tbody.innerHTML = "";
     totalAll = 0;
+    
+const kostorySet = new Set();
+snap.forEach(p => {
+  const d = p.val();
+  if (d.kostory) kostorySet.add(d.kostory);
+});
 
+renderKostoryChips([...kostorySet]);
+  
     snap.forEach(p => {
       const d = p.val();
+      if (
+  selectedKostory.size > 0 &&
+  !selectedKostory.has(d.kostory)
+) return;
+
       if (!d.items || !d.bulan) return;
 
       const [tahun, bulan] = d.bulan.split("-");
@@ -190,12 +241,12 @@ function loadRekap() {
       "Rp " + totalAll.toLocaleString();
   });
 }
+ 
 initFilter();
 loadRekap();
 
 document.getElementById("filterTahun").addEventListener("change", loadRekap);
 document.getElementById("filterBulan").addEventListener("change", loadRekap);
-
 
 </script>
 
