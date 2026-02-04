@@ -118,7 +118,7 @@ button {
   <!-- FILTER -->
   <div class="card filter-card">
     <label>Bulan & Tahun</label>
-    <input type="month" id="bulanFilter">
+ <select id="bulanFilter"></select>
 
     <br><br>
 
@@ -179,6 +179,27 @@ onValue(ref(db, "pengajuan"), snap => {
       allData.push(d);
     }
   });
+  
+function renderBulanOptions() {
+  const set = new Set(
+    allData
+      .map(d => String(d.bulan).slice(0, 7))
+      .filter(Boolean)
+  );
+
+  bulanFilter.innerHTML = "";
+
+  if (set.size === 0) {
+    bulanFilter.innerHTML = `<option value="">Tidak ada data</option>`;
+    return;
+  }
+
+  [...set].sort().forEach(b => {
+    bulanFilter.innerHTML += `
+      <option value="${b}">${b}</option>
+    `;
+  });
+}
 
   renderKostoryChips();
   applyFilter();
