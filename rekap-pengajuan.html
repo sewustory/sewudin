@@ -57,11 +57,28 @@ tfoot td{
 }
 
 @media print{
-  button{ display:none }
-  body{ padding:0 }
+  button{
+    display:none !important;
+  }
 
-  /* ⬇️ SEMBUNYIKAN CHIP PILIH KOSTORY SAAT CETAK */
-  #filterKostory{ display:none }
+  body{
+    padding:0 !important;
+  }
+
+  /* 🔥 PAKSA HILANG CHIP PILIH KOSTORY */
+  #filterKostory{
+    display:none !important;
+    visibility:hidden !important;
+    height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  /* (opsional tapi aman) sembunyikan bar filter tahun & bulan */
+  #filterTahun,
+  #filterBulan{
+    display:none !important;
+  }
 }
 
   
