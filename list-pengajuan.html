@@ -64,6 +64,44 @@ button {
   background: #6b7280;
   color: #fff;
 }
+/* Mobile fix */
+@media (max-width: 768px) {
+
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 30%;
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 20%;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3),
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 25%;
+  }
+}
 
 .approve { background: #22c55e; color: #fff; }
 .reject { background: #ef4444; color: #fff; }
