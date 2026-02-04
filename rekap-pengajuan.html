@@ -70,6 +70,32 @@ tfoot td{
   <button onclick="window.print()">🖨 Cetak PDF</button>
 </div>
 
+<div style="margin-bottom:16px; display:flex; gap:10px; align-items:center">
+  <label>
+    Tahun:
+    <select id="filterTahun"></select>
+  </label>
+
+  <label>
+    Bulan:
+    <select id="filterBulan">
+      <option value="">Semua</option>
+      <option value="01">Januari</option>
+      <option value="02">Februari</option>
+      <option value="03">Maret</option>
+      <option value="04">April</option>
+      <option value="05">Mei</option>
+      <option value="06">Juni</option>
+      <option value="07">Juli</option>
+      <option value="08">Agustus</option>
+      <option value="09">September</option>
+      <option value="10">Oktober</option>
+      <option value="11">November</option>
+      <option value="12">Desember</option>
+    </select>
+  </label>
+</div>
+  
 <table>
   <thead>
     <tr>
@@ -111,39 +137,62 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
-
+  
 let totalAll = 0;
+  
+function initFilter() {
+  const tahunSelect = document.getElementById("filterTahun");
+  const currentYear = new Date().getFullYear();
+
+  for (let y = currentYear - 3; y <= currentYear + 1; y++) {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if (y === currentYear) opt.selected = true;
+    tahunSelect.appendChild(opt);
+  }
+}
 
 onValue(ref(db, "pengajuan"), snap => {
-  const tbody = document.getElementById("rekap");
-  tbody.innerHTML = "";
-  totalAll = 0;
+    const tbody = document.getElementById("rekap");
+    tbody.innerHTML = "";
+    totalAll = 0;
 
-  snap.forEach(p => {
-    const d = p.val();
-    if (!d.items) return;
+    snap.forEach(p => {
+      const d = p.val();
+      if (!d.items || !d.bulan) return;
 
-    const items = Object.values(d.items);
+      const [tahun, bulan] = d.bulan.split("-");
 
-    items.forEach(i => {
-      totalAll += Number(i.subtotal || 0);
+      if (filterTahun.value && filterTahun.value !== tahun) return;
+      if (filterBulan.value && filterBulan.value !== bulan) return;
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${d.kostory}</td>
-          <td>${i.nama}</td>
-          <td>${i.volume}</td>
-          <td>${i.satuan}</td>
-          <td>Rp ${Number(i.harga).toLocaleString()}</td>
-          <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
-        </tr>
-      `;
+      const items = Object.values(d.items);
+
+      items.forEach(i => {
+        totalAll += Number(i.subtotal || 0);
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${d.kostory}</td>
+            <td>${i.nama}</td>
+            <td>${i.volume}</td>
+            <td>${i.satuan}</td>
+            <td>Rp ${Number(i.harga).toLocaleString()}</td>
+            <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
+          </tr>
+        `;
+      });
     });
-  });
 
-  document.getElementById("grandTotal").innerText =
-    "Rp " + totalAll.toLocaleString();
-});
+    document.getElementById("grandTotal").innerText =
+      "Rp " + totalAll.toLocaleString();
+  });
+}
+initFilter();
+
+document.getElementById("filterTahun").addEventListener("change", loadRekap);
+document.getElementById("filterBulan").addEventListener("change", loadRekap);
 
 </script>
 
