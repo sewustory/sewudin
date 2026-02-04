@@ -32,11 +32,23 @@ header {
 }
 
 .filters {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
-  margin-bottom:16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  .filters > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
+
+.filters label {
+  font-size: 14px;
+}
+  
+select[multiple] {
+  min-height: 140px;
+}
+
 select, input {
   padding:10px;
   border-radius:8px;
@@ -115,8 +127,11 @@ input[type="month"], select {
 </div>
 
 
-    <button class="btn-blue" onclick="applyFilter()">Terapkan Filter</button>
-    <button class="btn-green btn-print" onclick="window.print()">Cetak / PDF</button>
+    <div style="display:flex;gap:12px;margin-top:12px">
+  <button class="btn-blue" onclick="applyFilter()">Terapkan Filter</button>
+  <button class="btn-green btn-print" onclick="window.print()">Cetak / PDF</button>
+</div>
+
   </div>
 
   <!-- HASIL -->
