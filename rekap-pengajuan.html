@@ -238,9 +238,9 @@ function renderTable(data) {
   let grand = 0;
 
   data.forEach(d => {
-    const items = d.items || {};
+    const items = Array.isArray(d.items) ? d.items : [];
 
-    Object.values(items).forEach(i => {
+    items.forEach(i => {
       rekapBody.innerHTML += `
         <tr>
           <td>${d.kostory}</td>
