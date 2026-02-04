@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Pengajuan Bonus</title>
@@ -10,15 +10,20 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body{margin:0;background:#f8fafc;font-family:Arial}
+body{margin:0;font-family:Arial;background:#f8fafc}
 header{background:#020617;color:white;padding:16px;font-weight:bold}
-.box{background:white;margin:16px;padding:16px;border-radius:14px}
-select,input,button{
-  width:100%;padding:12px;margin-top:10px;
-  border-radius:10px;border:1px solid #cbd5e1;
-}
+.container{padding:16px}
+.card{background:white;padding:16px;border-radius:14px}
+select,input{padding:8px;border-radius:8px;border:1px solid #cbd5e1}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{border-bottom:1px solid #e5e7eb;padding:8px;font-size:14px}
+th{text-align:left;background:#f1f5f9}
+input[type=number]{width:80px}
+.total{font-weight:bold;font-size:16px;text-align:right}
 button{
-  background:#22c55e;border:none;font-weight:bold;
+  margin-top:16px;width:100%;
+  padding:14px;border:none;border-radius:12px;
+  background:#22c55e;font-weight:bold;font-size:16px
 }
 </style>
 </head>
@@ -26,14 +31,33 @@ button{
 <body>
 <header>Pengajuan Bonus</header>
 
-<div class="box">
-  <label>Kostory</label>
-  <select id="cabang"></select>
+<div class="container">
+<div class="card">
 
-  <label>Volume</label>
-  <input id="volume" type="number">
+<label>Kostory</label>
+<select id="cabang"></select>
 
-  <button onclick="kirim()">Kirim Pengajuan</button>
+<label style="margin-left:16px">Bulan</label>
+<input id="bulan" type="month">
+
+<table>
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Volume</th>
+  <th>Satuan</th>
+  <th>Harga</th>
+  <th>Subtotal</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<div class="total">TOTAL: Rp <span id="total">0</span></div>
+
+<button onclick="kirim()">Kirim Pengajuan</button>
+
+</div>
 </div>
 
 <script>
@@ -48,16 +72,59 @@ firebase.auth().onAuthStateChanged(u=>{
   if(!u) location.href="login.html";
 });
 
-firebase.database().ref("cabang").on("value",snap=>{
-  cabang.innerHTML="";
-  snap.forEach(c=>{
-    cabang.innerHTML+=`<option>${c.val().nama}</option>`;
-  });
+const items = [
+  {key:"mengurus_kost", label:"Mengurus Kost", satuan:"Bulan"},
+  {key:"laundry", label:"Laundry", satuan:"Kg"},
+  {key:"checkin_harian", label:"Check-in Harian", satuan:"Hari"},
+  {key:"checkin_mingguan", label:"Check-in Mingguan", satuan:"Minggu"},
+  {key:"checkin_bulanan", label:"Check-in Bulanan", satuan:"Bulan"},
+  {key:"parkir_mobil", label:"Parkir Mobil", satuan:"Mobil"},
+  {key:"servis_ac", label:"Servis AC", satuan:"Unit"}
+];
+
+let harga = {};
+
+firebase.database().ref("harga").once("value").then(s=>{
+  harga = s.val() || {};
+  render();
 });
 
+firebase.database().ref("cabang").on("value",s=>{
+  cabang.innerHTML="";
+  s.forEach(c=>cabang.innerHTML+=`<option>${c.val().nama}</option>`);
+});
+
+function render(){
+  list.innerHTML="";
+  items.forEach(i=>{
+    const h = harga[i.key]||0;
+    list.innerHTML+=`
+    <tr>
+      <td>${i.label}</td>
+      <td><input type="number" min="0" value="0" onchange="hitung()"></td>
+      <td>${i.satuan}</td>
+      <td>Rp ${h.toLocaleString()}</td>
+      <td class="sub">Rp 0</td>
+    </tr>`;
+  });
+}
+
+function hitung(){
+  let total=0;
+  document.querySelectorAll("#list tr").forEach((r,idx)=>{
+    const vol = r.querySelector("input").valueAsNumber||0;
+    const h = harga[items[idx].key]||0;
+    const sub = vol*h;
+    r.querySelector(".sub").innerText="Rp "+sub.toLocaleString();
+    total+=sub;
+  });
+  total.innerText = total.toLocaleString();
+}
+
 function kirim(){
-  alert("Pengajuan terkirim (dummy)");
+  alert("Pengajuan siap dikirim (tinggal simpan ke DB)");
 }
 </script>
+
 </body>
 </html>
