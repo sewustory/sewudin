@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Admin Panel</title>
@@ -10,39 +10,47 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body{margin:0;background:#f1f5f9;font-family:Arial}
-header{
-  background:#020617;color:white;
-  padding:16px;font-size:18px;font-weight:bold;
-}
-.box{
-  background:white;margin:16px;padding:16px;border-radius:14px;
-}
-input,select,button{
-  width:100%;padding:12px;margin-top:10px;
-  border-radius:10px;border:1px solid #cbd5e1;
-}
-button{
-  background:#2563eb;color:white;
-  border:none;font-weight:bold;
-}
+body{margin:0;font-family:Arial;background:#f1f5f9}
+header{background:#020617;color:white;padding:16px;font-size:18px;font-weight:bold}
+.container{padding:16px}
+.card{background:white;padding:16px;border-radius:14px;margin-bottom:16px}
+h3{margin-top:0}
+.list-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.actions button{margin-left:6px;padding:4px 8px;border:none;border-radius:6px;cursor:pointer}
+.edit{background:#eab308}
+.delete{background:#ef4444;color:white}
+.add{background:#22c55e;border:none;padding:8px 12px;border-radius:8px}
+input{padding:8px;border-radius:8px;border:1px solid #cbd5e1}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 <header>Admin Panel</header>
+<div class="container">
 
-<div class="box">
-  <h3>Tambah Cabang</h3>
-  <input id="cabangBaru" placeholder="Nama cabang">
-  <button onclick="tambahCabang()">Tambah</button>
+<!-- CABANG -->
+<div class="card">
+<h3>Kostory</h3>
+<div id="listCabang"></div>
+
+<input id="cabangBaru" placeholder="Nama kostory baru">
+<button class="add" onclick="tambahCabang()">+ Kostory</button>
 </div>
 
-<div class="box">
-  <h3>Update Harga</h3>
-  <input id="kategori" placeholder="Kategori">
-  <input id="harga" type="number" placeholder="Harga">
-  <button onclick="simpanHarga()">Simpan</button>
+<!-- HARGA -->
+<div class="card">
+<h3>Harga Satuan</h3>
+<div id="listHarga"></div>
+
+<hr>
+<input id="keyBaru" placeholder="Key (contoh: laundry)">
+<input id="labelBaru" placeholder="Nama kategori">
+<input id="satuanBaru" placeholder="Satuan">
+<input id="hargaBaru" type="number" placeholder="Harga">
+<button class="add" onclick="tambahKategori()">+ Kategori</button>
+</div>
+
 </div>
 
 <script>
@@ -57,16 +65,72 @@ firebase.auth().onAuthStateChanged(u=>{
   if(!u) location.href="login.html";
 });
 
+// ===== CABANG =====
+firebase.database().ref("cabang").on("value",snap=>{
+  listCabang.innerHTML="";
+  snap.forEach(c=>{
+    const k=c.key;
+    const n=c.val().nama;
+    listCabang.innerHTML+=`
+      <div class="list-row">
+        <div>${n}</div>
+        <div class="actions">
+          <button class="edit" onclick="editCabang('${k}','${n}')">edit</button>
+          <button class="delete" onclick="hapusCabang('${k}')">delete</button>
+        </div>
+      </div>`;
+  });
+});
+
 function tambahCabang(){
-  const nama = cabangBaru.value.toLowerCase();
-  firebase.database().ref("cabang/"+nama).set({nama});
-  alert("Cabang ditambahkan");
+  const n=cabangBaru.value.trim();
+  if(!n)return;
+  firebase.database().ref("cabang/"+n.toLowerCase()).set({nama:n});
+  cabangBaru.value="";
 }
 
-function simpanHarga(){
-  firebase.database().ref("harga/"+kategori.value)
-    .set(Number(harga.value));
-  alert("Harga disimpan");
+function editCabang(k,n){
+  const baru=prompt("Ubah nama",n);
+  if(!baru)return;
+  firebase.database().ref("cabang/"+k).set({nama:baru});
+}
+
+function hapusCabang(k){
+  if(confirm("Hapus kostory?"))
+    firebase.database().ref("cabang/"+k).remove();
+}
+
+// ===== HARGA =====
+firebase.database().ref("harga").on("value",snap=>{
+  listHarga.innerHTML="";
+  snap.forEach(h=>{
+    const k=h.key,v=h.val();
+    listHarga.innerHTML+=`
+      <div class="list-row">
+        <div>
+          <b>${v.label}</b><br>
+          Rp ${v.harga.toLocaleString()} /${v.satuan}
+        </div>
+        <div class="actions">
+          <button class="edit" onclick="editHarga('${k}',${v.harga})">update</button>
+        </div>
+      </div>`;
+  });
+});
+
+function editHarga(k,h){
+  const baru=prompt("Harga baru",h);
+  if(!baru)return;
+  firebase.database().ref("harga/"+k+"/harga").set(Number(baru));
+}
+
+function tambahKategori(){
+  firebase.database().ref("harga/"+keyBaru.value).set({
+    label:labelBaru.value,
+    satuan:satuanBaru.value,
+    harga:Number(hargaBaru.value)
+  });
+  keyBaru.value=labelBaru.value=satuanBaru.value=hargaBaru.value="";
 }
 </script>
 </body>
