@@ -220,13 +220,17 @@ function renderKostoryChips() {
 bulanFilter.addEventListener("change", applyFilter);
 
 function applyFilter() {
-  const data = allData.filter(d =>
-    d.bulan === bulanFilter.value &&
-    activeKostory.includes(d.kostory)
-  );
+  const data = allData.filter(d => {
+    const cocokBulan = d.bulan === bulanFilter.value;
+    const cocokKostory =
+      activeKostory.length === 0 || activeKostory.includes(d.kostory);
+
+    return cocokBulan && cocokKostory;
+  });
 
   renderTable(data);
 }
+
 
 /* RENDER TABEL + DETAIL ITEM */
 function renderTable(data) {
