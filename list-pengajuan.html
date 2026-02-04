@@ -221,11 +221,9 @@ function loadPengajuan() {
 
     snap.forEach(p => {
       const d = p.val();
-
+    kostorySet.add(d.kostory);
       if (role === "karyawan" && d.oleh !== email) return;
       
-kostorySet.add(d.kostory);
-
       data.push({
         id: p.key,
         ...d
