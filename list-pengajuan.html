@@ -170,11 +170,30 @@ function fetchUser(uid) {
 function loadPengajuan() {
   onValue(ref(db, "pengajuan"), snap => {
     list.innerHTML = "";
+
+    let data = [];
+
     snap.forEach(p => {
       const d = p.val();
 
       if (role === "karyawan" && d.oleh !== email) return;
 
+      data.push({
+        id: p.key,
+        ...d
+      });
+    });
+
+    // SORTING:
+    // 1. pending di atas
+    // 2. yang terbaru di atas
+    data.sort((a, b) => {
+      if (a.status === "pending" && b.status !== "pending") return -1;
+      if (a.status !== "pending" && b.status === "pending") return 1;
+      return b.id.localeCompare(a.id); // terbaru dulu
+    });
+
+    data.forEach(d => {
       list.innerHTML += `
         <div class="card">
           <b>${d.kostory}</b> | ${d.bulan}<br>
@@ -201,9 +220,9 @@ function loadPengajuan() {
 
           ${role === "admin" && d.status === "pending" ? `
             <div style="margin-top:12px;text-align:right">
-              <button class="approve" onclick="updateStatus('${p.key}','approved')">Approve</button>
-              <button class="reject" onclick="updateStatus('${p.key}','rejected')">Reject</button>
-              <button class="delete" onclick="deletePengajuan('${p.key}')">Delete</button>
+              <button class="approve" onclick="updateStatus('${d.id}','approved')">Approve</button>
+              <button class="reject" onclick="updateStatus('${d.id}','rejected')">Reject</button>
+              <button class="delete" onclick="deletePengajuan('${d.id}')">Delete</button>
             </div>
           ` : ""}
         </div>
