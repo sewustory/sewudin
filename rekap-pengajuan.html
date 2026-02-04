@@ -207,6 +207,7 @@ renderKostoryChips([...kostorySet]);
   
     snap.forEach(p => {
       const d = p.val();
+       if (d.status !== "approved") return; // ⬅️ TARO DI SINI
       if (
   selectedKostory.size > 0 &&
   !selectedKostory.has(d.kostory)
