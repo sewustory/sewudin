@@ -260,9 +260,8 @@ renderKostoryChips([...kostorySet]);
 
     document.getElementById("grandTotal").innerText =
       "Rp " + totalAll.toLocaleString();
-  });
-}
-const rekapDiv = document.getElementById("rekapPerKostory");
+
+    const rekapDiv = document.getElementById("rekapPerKostory");
 rekapDiv.innerHTML = "";
 
 Object.entries(rekapKostory).forEach(([nama, total]) => {
@@ -273,6 +272,9 @@ Object.entries(rekapKostory).forEach(([nama, total]) => {
 
 document.getElementById("rekapGrandTotal").innerText =
   "Rp " + totalAll.toLocaleString();
+  });
+}
+
  
 initFilter();
 loadRekap();
