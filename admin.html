@@ -2,19 +2,84 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 
+<!-- ===== STYLE ===== -->
 <style>
-body{margin:0;font-family:Arial;background:#f1f5f9}
-header{background:#020617;color:#fff;padding:16px;font-size:20px}
-.card{background:#fff;margin:16px;padding:16px;border-radius:10px}
-.row{display:flex;justify-content:space-between;align-items:center;margin:6px 0}
-.btn{padding:4px 10px;border-radius:6px;border:none;cursor:pointer}
-.add{background:#22c55e;color:#fff}
-.edit{background:#2563eb;color:#fff}
-.del{background:#ef4444;color:#fff}
-input{padding:6px;margin:4px 0}
-.inline input{width:90px}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background:#f4f6f8;
+}
+
+header{
+  background:linear-gradient(90deg,#020617,#020617);
+  color:white;
+  padding:16px;
+  font-size:20px;
+  font-weight:600;
+}
+
+.container{
+  padding:16px;
+  max-width:800px;
+  margin:auto;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+h2{
+  margin:0 0 12px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+}
+
+button{
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn-green{background:#22c55e;color:white}
+.btn-blue{background:#2563eb;color:white}
+.btn-red{background:#ef4444;color:white}
+.btn-gray{background:#e5e7eb}
+
+.list{
+  margin-top:12px;
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+
+.item small{color:#6b7280}
+
+.actions button{
+  margin-left:6px;
+  padding:6px 10px;
+  font-size:13px;
+}
 </style>
 </head>
 
@@ -22,107 +87,132 @@ input{padding:6px;margin:4px 0}
 
 <header>Admin Panel</header>
 
+<div class="container">
+
+<!-- ===== KOSTORY ===== -->
 <div class="card">
-<h3>Kostory</h3>
-<input id="cabangInput" placeholder="Nama Kostory">
-<button class="btn add" onclick="addCabang()">+ Kostory</button>
-<div id="cabangList"></div>
+  <h2>Kostory</h2>
+  <input id="kostoryName" placeholder="Nama Kostory">
+  <button class="btn-green" onclick="addKostory()">+ Kostory</button>
+
+  <div id="kostoryList" class="list"></div>
 </div>
 
+<!-- ===== HARGA SATUAN ===== -->
 <div class="card">
-<h3>Harga Satuan</h3>
-<div id="hargaList"></div>
-<button class="btn add" onclick="addHarga()">+ item</button>
+  <h2>Harga Satuan</h2>
+
+  <input id="itemName" placeholder="Nama item (contoh: Mengurus Kost)">
+  <input id="itemPrice" type="number" placeholder="Harga">
+  <input id="itemUnit" placeholder="Satuan (orang / kg / unit)">
+  <button class="btn-green" onclick="addItem()">+ Item</button>
+
+  <div id="itemList" class="list"></div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</div>
 
-<script>
-firebase.initializeApp({
+<!-- ===== FIREBASE ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, remove, update } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
   databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sewudin-543e0",
-  storageBucket: "sewudin-543e0.appspot.com",
-  messagingSenderId: "915734517079",
-  appId: "1:915734517079:web:e56543423814ce30e69a12"
-});
+  projectId: "sewudin-543e0"
+};
 
-const db = firebase.database();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ===== UTIL ===== */
+function makeKey(text){
+  return text.toLowerCase()
+    .replace(/[^a-z0-9]+/g,"_")
+    .replace(/^_|_$/g,"");
+}
 
 /* ===== KOSTORY ===== */
-const cabangRef = db.ref("cabang");
+window.addKostory = () =>{
+  const name = kostoryName.value.trim();
+  if(!name) return alert("Nama kosong");
 
-cabangRef.on("value", s=>{
-  cabangList.innerHTML="";
-  s.forEach(c=>{
-    cabangList.innerHTML+=`
-      <div class="row">
-        ${c.val().nama}
-        <span>
-          <button class="btn edit" onclick="editCabang('${c.key}')">edit</button>
-          <button class="btn del" onclick="hapusCabang('${c.key}')">delete</button>
-        </span>
+  const key = makeKey(name);
+  set(ref(db,"cabang/"+key),{nama:name});
+  kostoryName.value="";
+};
+
+onValue(ref(db,"cabang"),snap=>{
+  kostoryList.innerHTML="";
+  snap.forEach(c=>{
+    const d=c.val();
+    kostoryList.innerHTML+=`
+      <div class="item">
+        <b>${d.nama}</b>
+        <div class="actions">
+          <button class="btn-red" onclick="delKostory('${c.key}')">hapus</button>
+        </div>
       </div>`;
   });
 });
 
-function addCabang(){
-  const n=cabangInput.value.trim();
-  if(!n)return;
-  cabangRef.child(n.toLowerCase()).set({nama:n});
-  cabangInput.value="";
-}
-
-function editCabang(k){
-  const n=prompt("Nama baru");
-  if(n)cabangRef.child(k).set({nama:n});
-}
-
-function hapusCabang(k){
-  if(confirm("hapus?"))cabangRef.child(k).remove();
-}
+window.delKostory = key=>{
+  if(confirm("Hapus kostory?"))
+    remove(ref(db,"cabang/"+key));
+};
 
 /* ===== HARGA ===== */
-const hargaRef=db.ref("harga");
+window.addItem = ()=>{
+  const name=itemName.value.trim();
+  const price=Number(itemPrice.value);
+  const unit=itemUnit.value.trim();
 
-hargaRef.on("value",s=>{
-  hargaList.innerHTML="";
-  s.forEach(h=>{
-    const v=h.val();
-    hargaList.innerHTML+=`
-    <div class="row" id="h-${h.key}">
-      <div>${v.label} — Rp ${v.harga} /${v.satuan}</div>
-      <button class="btn edit" onclick="editHarga('${h.key}')">update</button>
-    </div>`;
+  if(!name||!price||!unit) return alert("Lengkapi data");
+
+  const key=makeKey(name);
+  set(ref(db,"harga/"+key),{
+    nama:name,
+    harga:price,
+    satuan:unit
+  });
+
+  itemName.value="";
+  itemPrice.value="";
+  itemUnit.value="";
+};
+
+onValue(ref(db,"harga"),snap=>{
+  itemList.innerHTML="";
+  snap.forEach(c=>{
+    const d=c.val();
+    itemList.innerHTML+=`
+      <div class="item">
+        <div>
+          <b>${d.nama}</b><br>
+          <small>Rp ${d.harga.toLocaleString()} / ${d.satuan}</small>
+        </div>
+        <div class="actions">
+          <button class="btn-blue" onclick="editItem('${c.key}','${d.nama}',${d.harga},'${d.satuan}')">edit</button>
+          <button class="btn-red" onclick="delItem('${c.key}')">hapus</button>
+        </div>
+      </div>`;
   });
 });
 
-function editHarga(k){
-  hargaRef.child(k).once("value").then(s=>{
-    const v=s.val();
-    document.getElementById("h-"+k).innerHTML=`
-      <div class="inline">
-        <input id="hval-${k}" type="number" value="${v.harga}">
-        <button class="btn add" onclick="saveHarga('${k}','${v.label}','${v.satuan}')">simpan</button>
-      </div>`;
-  });
-}
+window.editItem=(key,n,h,s)=>{
+  const price=prompt("Harga",h);
+  if(price===null) return;
+  update(ref(db,"harga/"+key),{harga:Number(price)});
+};
 
-function saveHarga(k,l,s){
-  const v=+document.getElementById("hval-"+k).value;
-  hargaRef.child(k).set({label:l,satuan:s,harga:v});
-}
-
-function addHarga(){
-  const key=prompt("key (contoh: laundry)");
-  const label=prompt("nama");
-  const satuan=prompt("satuan");
-  if(key&&label&&satuan){
-    hargaRef.child(key).set({label,satuan,harga:0});
-  }
-}
+window.delItem=key=>{
+  if(confirm("Hapus item?"))
+    remove(ref(db,"harga/"+key));
+};
 </script>
+
 </body>
 </html>
