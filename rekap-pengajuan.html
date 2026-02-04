@@ -47,11 +47,11 @@ input {
   font-size: 14px;
 }
 
-.filter-group {
-  margin-bottom: 20px;
+.form-group {
+  margin-bottom: 18px;
 }
 
-/* KOSTORY CHIPS */
+/* KOSTORY BUTTONS */
 .kostory-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -137,12 +137,12 @@ th {
   <!-- FILTER -->
   <div class="card filter-card">
 
-    <div class="filter-group">
+    <div class="form-group">
       <label>Bulan & Tahun</label>
       <input type="month" id="bulanFilter">
     </div>
 
-    <div class="filter-group">
+    <div class="form-group">
       <label>Kostory</label>
       <div id="kostoryButtons" class="kostory-wrap"></div>
     </div>
@@ -197,30 +197,40 @@ let selectedKostory = [];
 
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
+/* ================= UTIL AMBIL KOSTORY (ANTI STRUKTUR ANEH) ================= */
+function getKostory(d) {
+  if (d.kostory) return d.kostory;
+  if (d.items?.kostory) return d.items.kostory;
+  if (Array.isArray(d.items) && d.items[0]?.kostory) return d.items[0].kostory;
+  return "-";
+}
+
+/* ================= LOAD DATA ================= */
 onValue(ref(db, "pengajuan"), snap => {
   allData = [];
+
   snap.forEach(p => {
     const d = p.val();
     if (d.status === "approved") {
       allData.push(d);
     }
   });
+
   renderKostoryButtons();
   render(allData);
 });
 
+/* ================= KOSTORY BUTTONS ================= */
 function renderKostoryButtons() {
-  const set = new Set(allData.map(d => d.kostory).filter(Boolean));
-  kostoryButtons.innerHTML = "";
+  const set = new Set();
+  selectedKostory = [];
 
-  if (set.size === 0) {
-    kostoryButtons.innerHTML = `
-      <div style="color:#6b7280;font-style:italic">
-        Tidak ada data kostory (belum ada pengajuan approved)
-      </div>
-    `;
-    return;
-  }
+  allData.forEach(d => {
+    const k = getKostory(d);
+    if (k && k !== "-") set.add(k);
+  });
+
+  kostoryButtons.innerHTML = "";
 
   set.forEach(k => {
     const btn = document.createElement("button");
@@ -241,7 +251,7 @@ function renderKostoryButtons() {
   });
 }
 
-
+/* ================= FILTER ================= */
 window.applyFilter = function () {
   let data = [...allData];
 
@@ -250,27 +260,31 @@ window.applyFilter = function () {
   }
 
   if (selectedKostory.length > 0) {
-    data = data.filter(d => selectedKostory.includes(d.kostory));
+    data = data.filter(d => selectedKostory.includes(getKostory(d)));
   }
 
   render(data);
 };
 
+/* ================= RENDER TABLE ================= */
 function render(data) {
   rekapBody.innerHTML = "";
   let total = 0;
 
   data.forEach(d => {
-    d.items.forEach(i => {
-      total += i.subtotal;
+    const kostory = getKostory(d);
+
+    (d.items || []).forEach(i => {
+      total += i.subtotal || 0;
+
       rekapBody.innerHTML += `
         <tr>
           <td>${d.bulan}</td>
-          <td>${d.kostory}</td>
+          <td>${kostory}</td>
           <td>${i.nama}</td>
           <td>${i.volume} ${i.satuan}</td>
-          <td>Rp ${i.harga.toLocaleString()}</td>
-          <td>Rp ${i.subtotal.toLocaleString()}</td>
+          <td>Rp ${Number(i.harga).toLocaleString()}</td>
+          <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
         </tr>
       `;
     });
