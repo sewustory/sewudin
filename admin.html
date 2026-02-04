@@ -5,47 +5,16 @@
 <title>Admin Panel</title>
 
 <style>
-body{
-  font-family:Arial;
-  background:#f1f5f9;
-  margin:0;
-}
-header{
-  background:#020617;
-  color:#fff;
-  padding:16px;
-  font-size:20px;
-}
-.card{
-  background:#fff;
-  margin:16px;
-  padding:16px;
-  border-radius:10px;
-}
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin:6px 0;
-}
-input{
-  padding:8px;
-  width:100%;
-  margin:6px 0;
-}
-button{
-  padding:6px 12px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
+body{margin:0;font-family:Arial;background:#f1f5f9}
+header{background:#020617;color:#fff;padding:16px;font-size:20px}
+.card{background:#fff;margin:16px;padding:16px;border-radius:10px}
+.row{display:flex;justify-content:space-between;align-items:center;margin:6px 0}
+.btn{padding:4px 10px;border-radius:6px;border:none;cursor:pointer}
 .add{background:#22c55e;color:#fff}
 .edit{background:#2563eb;color:#fff}
 .del{background:#ef4444;color:#fff}
-.group{
-  margin-top:14px;
-  font-weight:bold;
-}
+input{padding:6px;margin:4px 0}
+.inline input{width:90px}
 </style>
 </head>
 
@@ -54,24 +23,22 @@ button{
 <header>Admin Panel</header>
 
 <div class="card">
-  <h3>Kostory</h3>
-  <input id="cabangInput" placeholder="Nama Kostory">
-  <button class="add" onclick="tambahCabang()">+ Kostory</button>
-  <div id="cabangList"></div>
+<h3>Kostory</h3>
+<input id="cabangInput" placeholder="Nama Kostory">
+<button class="btn add" onclick="addCabang()">+ Kostory</button>
+<div id="cabangList"></div>
 </div>
 
 <div class="card">
-  <h3>Harga Satuan</h3>
-  <div id="hargaList"></div>
-  <button class="add" onclick="tambahItem()">+ item</button>
+<h3>Harga Satuan</h3>
+<div id="hargaList"></div>
+<button class="btn add" onclick="addHarga()">+ item</button>
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-/* ================= FIREBASE CONFIG ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
@@ -84,79 +51,77 @@ firebase.initializeApp({
 
 const db = firebase.database();
 
-/* ================= CABANG ================= */
+/* ===== KOSTORY ===== */
 const cabangRef = db.ref("cabang");
 
-cabangRef.on("value", snap=>{
+cabangRef.on("value", s=>{
   cabangList.innerHTML="";
-  snap.forEach(c=>{
-    cabangList.innerHTML += `
+  s.forEach(c=>{
+    cabangList.innerHTML+=`
       <div class="row">
         ${c.val().nama}
         <span>
-          <button class="edit" onclick="editCabang('${c.key}')">edit</button>
-          <button class="del" onclick="hapusCabang('${c.key}')">delete</button>
+          <button class="btn edit" onclick="editCabang('${c.key}')">edit</button>
+          <button class="btn del" onclick="hapusCabang('${c.key}')">delete</button>
         </span>
       </div>`;
   });
 });
 
-function tambahCabang(){
-  const nama = cabangInput.value.trim();
-  if(!nama) return;
-  cabangRef.child(nama.toLowerCase()).set({ nama });
+function addCabang(){
+  const n=cabangInput.value.trim();
+  if(!n)return;
+  cabangRef.child(n.toLowerCase()).set({nama:n});
   cabangInput.value="";
 }
 
-function editCabang(key){
-  const n = prompt("Nama baru:");
-  if(n) cabangRef.child(key).set({ nama:n });
+function editCabang(k){
+  const n=prompt("Nama baru");
+  if(n)cabangRef.child(k).set({nama:n});
 }
 
-function hapusCabang(key){
-  if(confirm("Hapus kostory ini?")){
-    cabangRef.child(key).remove();
-  }
+function hapusCabang(k){
+  if(confirm("hapus?"))cabangRef.child(k).remove();
 }
 
-/* ================= HARGA ================= */
-const hargaRef = db.ref("harga");
+/* ===== HARGA ===== */
+const hargaRef=db.ref("harga");
 
-hargaRef.on("value", snap=>{
+hargaRef.on("value",s=>{
   hargaList.innerHTML="";
-  snap.forEach(h=>{
-    const v = h.val();
-    hargaList.innerHTML += `
-      <div class="row" id="h-${h.key}">
-        <div>
-          ${v.label} /${v.satuan}<br>
-          Rp ${v.harga || "-"}
-        </div>
-        <button class="edit" onclick="editHarga('${h.key}')">update</button>
-      </div>`;
+  s.forEach(h=>{
+    const v=h.val();
+    hargaList.innerHTML+=`
+    <div class="row" id="h-${h.key}">
+      <div>${v.label} — Rp ${v.harga} /${v.satuan}</div>
+      <button class="btn edit" onclick="editHarga('${h.key}')">update</button>
+    </div>`;
   });
 });
 
-function editHarga(key){
-  hargaRef.child(key).once("value").then(s=>{
+function editHarga(k){
+  hargaRef.child(k).once("value").then(s=>{
     const v=s.val();
-    document.getElementById("h-"+key).innerHTML=`
-      <input type="number" id="harga-${key}" value="${v.harga}">
-      <button class="add" onclick="simpanHarga('${key}')">Simpan</button>`;
+    document.getElementById("h-"+k).innerHTML=`
+      <div class="inline">
+        <input id="hval-${k}" type="number" value="${v.harga}">
+        <button class="btn add" onclick="saveHarga('${k}','${v.label}','${v.satuan}')">simpan</button>
+      </div>`;
   });
 }
 
-function simpanHarga(key){
-  const val = document.getElementById("harga-"+key).value;
-  hargaRef.child(key+"/harga").set(+val);
+function saveHarga(k,l,s){
+  const v=+document.getElementById("hval-"+k).value;
+  hargaRef.child(k).set({label:l,satuan:s,harga:v});
 }
 
-function tambahItem(){
-  const key = prompt("key (tanpa spasi, contoh: laundry)");
-  const label = prompt("nama item");
-  const satuan = prompt("satuan (kg, hari, unit)");
-  if(!key||!label||!satuan) return;
-  hargaRef.child(key).set({ label, satuan, harga:0 });
+function addHarga(){
+  const key=prompt("key (contoh: laundry)");
+  const label=prompt("nama");
+  const satuan=prompt("satuan");
+  if(key&&label&&satuan){
+    hargaRef.child(key).set({label,satuan,harga:0});
+  }
 }
 </script>
 </body>
