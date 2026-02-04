@@ -100,9 +100,20 @@ input[type="month"], select {
   <!-- FILTER -->
   <div class="card">
     <div class="filters">
-      <input type="month" id="bulanFilter">
-      <select id="kostoryFilter" multiple></select>
-    </div>
+  <div>
+    <label><b>Pilih Bulan & Tahun</b></label>
+    <input type="month" id="bulanFilter">
+  </div>
+
+  <div>
+    <label><b>Pilih Kostory</b></label>
+    <select id="kostoryFilter" multiple size="5"></select>
+    <small style="color:#6b7280">
+      (Ctrl / Shift untuk pilih lebih dari satu)
+    </small>
+  </div>
+</div>
+
 
     <button class="btn-blue" onclick="applyFilter()">Terapkan Filter</button>
     <button class="btn-green btn-print" onclick="window.print()">Cetak / PDF</button>
@@ -162,6 +173,8 @@ onValue(ref(db,"pengajuan"), snap => {
   loadKostory();
   render(allData);
 });
+  
+bulanFilter.value = new Date().toISOString().slice(0,7);
 
 /* KOSTORY OPTIONS */
 function loadKostory() {
