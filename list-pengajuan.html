@@ -66,7 +66,23 @@ button {
 </head>
 
 <body>
-<header>Daftar Pengajuan</header>
+<header style="display:flex;justify-content:space-between;align-items:center">
+  <span>Daftar Pengajuan</span>
+
+  <button onclick="kembali()" 
+    style="
+      background:#22c55e;
+      color:white;
+      border:none;
+      padding:8px 14px;
+      border-radius:8px;
+      font-weight:bold;
+      cursor:pointer;
+    ">
+    ⬅ Kembali ke Pengajuan
+  </button>
+</header>
+
 
 <div class="container" id="list"></div>
 
@@ -155,6 +171,10 @@ function loadPengajuan() {
 window.updateStatus = function (id, status) {
   update(ref(db, "pengajuan/" + id), { status });
 };
+  window.kembali = function () {
+  location.href = "pengajuan.html";
+};
+
 </script>
 </body>
 </html>
