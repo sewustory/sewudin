@@ -44,57 +44,27 @@ input {
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
 }
 
-.form-group {
-  margin-bottom: 18px;
-}
-
-/* KOSTORY BUTTONS */
+/* CHIP */
 .kostory-wrap {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.kostory-btn {
+.kostory-chip {
   padding: 8px 16px;
   border-radius: 999px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   cursor: pointer;
-  font-size: 14px;
 }
 
-.kostory-btn.active {
+.kostory-chip.active {
   background: #2563eb;
   color: #fff;
   border-color: #2563eb;
-}
-
-/* BUTTON */
-.actions {
-  display: flex;
-  gap: 12px;
-}
-
-button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: #fff;
-}
-
-.btn-success {
-  background: #22c55e;
-  color: #fff;
 }
 
 /* TABLE */
@@ -120,6 +90,16 @@ th {
   font-weight: bold;
 }
 
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #22c55e;
+  color: #fff;
+}
+
 @media print {
   header, .filter-card {
     display: none;
@@ -136,22 +116,16 @@ th {
 
   <!-- FILTER -->
   <div class="card filter-card">
+    <label>Bulan & Tahun</label>
+    <input type="month" id="bulanFilter">
 
-    <div class="form-group">
-      <label>Bulan & Tahun</label>
-      <input type="month" id="bulanFilter">
-    </div>
+    <br><br>
 
-    <div class="form-group">
-      <label>Kostory</label>
-      <div id="kostoryButtons" class="kostory-wrap"></div>
-    </div>
+    <label>Kostory</label>
+    <div id="kostoryChips" class="kostory-wrap"></div>
 
-    <div class="actions">
-      <button class="btn-primary" onclick="applyFilter()">Terapkan Filter</button>
-      <button class="btn-success" onclick="window.print()">Cetak / PDF</button>
-    </div>
-
+    <br>
+    <button onclick="window.print()">Cetak / PDF</button>
   </div>
 
   <!-- RESULT -->
@@ -179,115 +153,101 @@ th {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
+/* FIREBASE */
+const app = initializeApp({
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
   databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sewudin-543e0",
-  storageBucket: "sewudin-543e0.appspot.com",
-  messagingSenderId: "915734517079",
-  appId: "1:915734517079:web:e56543423814ce30e69a12"
-};
-
-const app = initializeApp(firebaseConfig);
+  projectId: "sewudin-543e0"
+});
 const db = getDatabase(app);
 
+/* STATE */
 let allData = [];
-let selectedKostory = [];
+let activeKostory = [];
 
+/* DEFAULT BULAN */
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
-/* ================= UTIL AMBIL KOSTORY (ANTI STRUKTUR ANEH) ================= */
+/* AMBIL KOSTORY (SESUIAI DATA LU) */
 function getKostory(d) {
   if (d.kostory) return d.kostory;
-  if (d.items?.kostory) return d.items.kostory;
-  if (Array.isArray(d.items) && d.items[0]?.kostory) return d.items[0].kostory;
+  if (d.items && d.items.kostory) return d.items.kostory;
   return "-";
 }
 
-/* ================= LOAD DATA ================= */
+/* LOAD DATA */
 onValue(ref(db, "pengajuan"), snap => {
   allData = [];
-
   snap.forEach(p => {
     const d = p.val();
     if (d.status === "approved") {
       allData.push(d);
     }
   });
-
-  renderKostoryButtons();
-  render(allData);
+  renderKostory();
+  applyFilter();
 });
 
-/* ================= KOSTORY BUTTONS ================= */
-function renderKostoryButtons() {
+/* RENDER CHIP */
+function renderKostory() {
   const set = new Set();
-  selectedKostory = [];
+  allData.forEach(d => set.add(getKostory(d)));
 
-  allData.forEach(d => {
-    const k = getKostory(d);
-    if (k && k !== "-") set.add(k);
-  });
-
-  kostoryButtons.innerHTML = "";
+  kostoryChips.innerHTML = "";
+  activeKostory = [];
 
   set.forEach(k => {
-    const btn = document.createElement("button");
-    btn.textContent = k;
-    btn.className = "kostory-btn active";
-    selectedKostory.push(k);
+    const chip = document.createElement("div");
+    chip.className = "kostory-chip active";
+    chip.textContent = k;
+    activeKostory.push(k);
 
-    btn.onclick = () => {
-      btn.classList.toggle("active");
-      if (selectedKostory.includes(k)) {
-        selectedKostory = selectedKostory.filter(x => x !== k);
+    chip.onclick = () => {
+      chip.classList.toggle("active");
+      if (activeKostory.includes(k)) {
+        activeKostory = activeKostory.filter(x => x !== k);
       } else {
-        selectedKostory.push(k);
+        activeKostory.push(k);
       }
+      applyFilter();
     };
 
-    kostoryButtons.appendChild(btn);
+    kostoryChips.appendChild(chip);
   });
 }
 
-/* ================= FILTER ================= */
-window.applyFilter = function () {
-  let data = [...allData];
+/* AUTO FILTER (TANPA TOMBOL) */
+bulanFilter.addEventListener("change", applyFilter);
 
-  if (bulanFilter.value) {
-    data = data.filter(d => d.bulan === bulanFilter.value);
-  }
-
-  if (selectedKostory.length > 0) {
-    data = data.filter(d => selectedKostory.includes(getKostory(d)));
-  }
+function applyFilter() {
+  let data = allData.filter(d =>
+    d.bulan === bulanFilter.value &&
+    activeKostory.includes(getKostory(d))
+  );
 
   render(data);
-};
+}
 
-/* ================= RENDER TABLE ================= */
+/* RENDER TABLE */
 function render(data) {
   rekapBody.innerHTML = "";
   let total = 0;
 
   data.forEach(d => {
     const kostory = getKostory(d);
+    total += d.total || 0;
 
-    (d.items || []).forEach(i => {
-      total += i.subtotal || 0;
-
-      rekapBody.innerHTML += `
-        <tr>
-          <td>${d.bulan}</td>
-          <td>${kostory}</td>
-          <td>${i.nama}</td>
-          <td>${i.volume} ${i.satuan}</td>
-          <td>Rp ${Number(i.harga).toLocaleString()}</td>
-          <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
-        </tr>
-      `;
-    });
+    rekapBody.innerHTML += `
+      <tr>
+        <td>${d.bulan}</td>
+        <td>${kostory}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Rp ${Number(d.total).toLocaleString()}</td>
+      </tr>
+    `;
   });
 
   grandTotal.textContent = "Total: Rp " + total.toLocaleString();
