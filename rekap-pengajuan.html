@@ -122,6 +122,19 @@ tfoot td{
   </tfoot>
 </table>
 
+ <div id="rekapitulasi" style="margin-top:30px; max-width:400px">
+  <h3>Rekapitulasi</h3>
+
+  <div id="rekapPerKostory"></div>
+
+  <hr>
+
+  <div style="font-weight:bold">
+    Grand Total :
+    <span id="rekapGrandTotal">Rp 0</span>
+  </div>
+</div>
+ 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -143,6 +156,7 @@ const db = getDatabase(app);
 const auth = getAuth(app);
   
 let totalAll = 0;
+  
 let selectedKostory = new Set();
   
 function initFilter() {
@@ -196,7 +210,7 @@ function loadRekap() {
     const tbody = document.getElementById("rekap");
     tbody.innerHTML = "";
     totalAll = 0;
-    
+    const rekapKostory = {};
 const kostorySet = new Set();
 snap.forEach(p => {
   const d = p.val();
@@ -223,7 +237,13 @@ renderKostoryChips([...kostorySet]);
       const items = Object.values(d.items);
 
       items.forEach(i => {
-        totalAll += Number(i.subtotal || 0);
+  const subtotal = Number(i.subtotal || 0);
+  totalAll += subtotal;
+
+  if (!rekapKostory[d.kostory]) {
+    rekapKostory[d.kostory] = 0;
+  }
+  rekapKostory[d.kostory] += subtotal;
 
         tbody.innerHTML += `
           <tr>
@@ -242,6 +262,17 @@ renderKostoryChips([...kostorySet]);
       "Rp " + totalAll.toLocaleString();
   });
 }
+const rekapDiv = document.getElementById("rekapPerKostory");
+rekapDiv.innerHTML = "";
+
+Object.entries(rekapKostory).forEach(([nama, total]) => {
+  rekapDiv.innerHTML += `
+    <div>- ${nama} : Rp ${total.toLocaleString()}</div>
+  `;
+});
+
+document.getElementById("rekapGrandTotal").innerText =
+  "Rp " + totalAll.toLocaleString();
  
 initFilter();
 loadRekap();
