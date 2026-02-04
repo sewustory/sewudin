@@ -210,13 +210,24 @@ onValue(ref(db, "pengajuan"), snap => {
 });
 
 function renderKostoryButtons() {
-  const set = new Set(allData.map(d => d.kostory));
+  const set = new Set(allData.map(d => d.kostory).filter(Boolean));
   kostoryButtons.innerHTML = "";
+
+  if (set.size === 0) {
+    kostoryButtons.innerHTML = `
+      <div style="color:#6b7280;font-style:italic">
+        Tidak ada data kostory (belum ada pengajuan approved)
+      </div>
+    `;
+    return;
+  }
 
   set.forEach(k => {
     const btn = document.createElement("button");
     btn.textContent = k;
-    btn.className = "kostory-btn";
+    btn.className = "kostory-btn active";
+    selectedKostory.push(k);
+
     btn.onclick = () => {
       btn.classList.toggle("active");
       if (selectedKostory.includes(k)) {
@@ -225,9 +236,11 @@ function renderKostoryButtons() {
         selectedKostory.push(k);
       }
     };
+
     kostoryButtons.appendChild(btn);
   });
 }
+
 
 window.applyFilter = function () {
   let data = [...allData];
