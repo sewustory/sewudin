@@ -57,31 +57,21 @@ tfoot td{
 }
 
 @media print{
-  button{
-    display:none !important;
-  }
+  button{ display:none !important }
+  body{ padding:0 !important }
 
-  body{
-    padding:0 !important;
-  }
-
-  /* 🔥 PAKSA HILANG CHIP PILIH KOSTORY */
+  /* sembunyikan filter interaktif */
+  select,
   #filterKostory{
     display:none !important;
-    visibility:hidden !important;
-    height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
   }
 
-  /* (opsional tapi aman) sembunyikan bar filter tahun & bulan */
-  #filterTahun,
-  #filterBulan{
-    display:none !important;
+  /* tampilkan info teks CETAK */
+  #printInfo{
+    display:block !important;
   }
 }
 
-  
 </style>
 </head>
 
@@ -90,7 +80,12 @@ tfoot td{
 <div class="header">
   <h1>Rekap Pengajuan</h1>
   <button onclick="cetakPDF()">🖨 Cetak PDF</button>
-
+</div>
+  
+<div id="printInfo" style="margin-bottom:12px; display:none">
+  <strong>Tahun:</strong> <span id="printTahun"></span>
+  &nbsp;&nbsp;
+  <strong>Bulan:</strong> <span id="printBulan"></span>
 </div>
 
 <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center">
@@ -336,10 +331,14 @@ window.cetakPDF = function () {
 
   const oldTitle = document.title;
   document.title = namaFile;
+const bulanText =
+  bulanSelect.options[bulanSelect.selectedIndex]?.text || "-";
+const tahunText = tahunSelect.value || "-";
+
+document.getElementById("printTahun").innerText = tahunText;
+document.getElementById("printBulan").innerText = bulanText;
 
   window.print();
-
-  // balikin judul setelah print
   document.title = oldTitle;
 };
 
