@@ -163,7 +163,7 @@ const db = getDatabase(app);
 let allData = [];
 let activeKostory = [];
 
-/* DEFAULT BULAN */
+/* default bulan */
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
 /* LOAD DATA APPROVED */
@@ -187,6 +187,11 @@ function renderKostoryChips() {
 
   const set = new Set(allData.map(d => d.kostory).filter(Boolean));
 
+  if (set.size === 0) {
+    kostoryChips.innerHTML = "<i style='color:#999'>Tidak ada kostory</i>";
+    return;
+  }
+
   set.forEach(k => {
     const chip = document.createElement("div");
     chip.className = "kostory-chip active";
@@ -207,7 +212,7 @@ function renderKostoryChips() {
   });
 }
 
-/* AUTO FILTER (TANPA TOMBOL) */
+/* AUTO FILTER */
 bulanFilter.addEventListener("change", applyFilter);
 
 function applyFilter() {
@@ -215,28 +220,37 @@ function applyFilter() {
     d.bulan === bulanFilter.value &&
     activeKostory.includes(d.kostory)
   );
+
   renderTable(data);
 }
 
-/* RENDER TABEL */
+/* RENDER TABEL + DETAIL ITEM */
 function renderTable(data) {
   rekapBody.innerHTML = "";
-  let total = 0;
+  let grand = 0;
 
   data.forEach(d => {
-    total += d.total || 0;
-    rekapBody.innerHTML += `
-      <tr>
-        <td>${d.bulan}</td>
-        <td>${d.kostory}</td>
-        <td>Rp ${Number(d.total).toLocaleString()}</td>
-      </tr>
-    `;
+    const items = d.items || {};
+    Object.values(items).forEach(i => {
+      rekapBody.innerHTML += `
+        <tr>
+          <td>${d.bulan}</td>
+          <td>${d.kostory}</td>
+          <td>${i.nama}</td>
+          <td>${i.volume} ${i.satuan}</td>
+          <td>Rp ${Number(i.harga).toLocaleString()}</td>
+          <td>Rp ${Number(i.subtotal).toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+    grand += d.total || 0;
   });
 
-  grandTotal.textContent = "Total: Rp " + total.toLocaleString();
+  grandTotal.textContent = "Total: Rp " + grand.toLocaleString();
 }
 </script>
+
 
 </body>
 </html>
