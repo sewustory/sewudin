@@ -45,7 +45,7 @@ button{
   <h2>Login Kostory</h2>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">MASUK</button>
+  <button id="btnLogin">MASUK</button>
 </div>
 
 <script type="module">
@@ -79,5 +79,8 @@ window.login = () => {
     })
     .catch(err => alert(err.message));
 };
+    document.getElementById("btnLogin")
+    .addEventListener("click", window.login);
+  
 </script>
 
