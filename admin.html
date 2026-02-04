@@ -5,81 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 
-<!-- ===== STYLE ===== -->
 <style>
 body{
   margin:0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:system-ui,-apple-system,sans-serif;
   background:#f4f6f8;
 }
-
 header{
-  background:linear-gradient(90deg,#020617,#020617);
-  color:white;
+  background:#020617;
+  color:#fff;
   padding:16px;
   font-size:20px;
   font-weight:600;
 }
-
 .container{
-  padding:16px;
-  max-width:800px;
+  max-width:900px;
   margin:auto;
+  padding:16px;
 }
-
 .card{
-  background:white;
+  background:#fff;
   border-radius:14px;
   padding:16px;
-  margin-bottom:16px;
+  margin-bottom:20px;
   box-shadow:0 8px 20px rgba(0,0,0,.06);
 }
-
-h2{
-  margin:0 0 12px;
-}
-
+h2{margin:0 0 12px}
 input{
   width:100%;
   padding:12px;
-  margin-bottom:10px;
   border-radius:10px;
   border:1px solid #d1d5db;
+  margin-bottom:10px;
   font-size:15px;
 }
-
 button{
-  padding:12px;
+  padding:10px 14px;
   border:none;
   border-radius:10px;
   font-weight:600;
   cursor:pointer;
 }
-
-.btn-green{background:#22c55e;color:white}
-.btn-blue{background:#2563eb;color:white}
-.btn-red{background:#ef4444;color:white}
-.btn-gray{background:#e5e7eb}
+.green{background:#22c55e;color:#fff}
+.blue{background:#2563eb;color:#fff}
+.red{background:#ef4444;color:#fff}
 
 .list{
-  margin-top:12px;
+  margin-top:16px;
 }
-
 .item{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 0;
-  border-bottom:1px solid #eee;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  margin-bottom:10px;
 }
-
 .item small{color:#6b7280}
-
-.actions button{
-  margin-left:6px;
-  padding:6px 10px;
-  font-size:13px;
-}
+.actions button{margin-left:6px}
 </style>
 </head>
 
@@ -92,30 +76,34 @@ button{
 <!-- ===== KOSTORY ===== -->
 <div class="card">
   <h2>Kostory</h2>
-  <input id="kostoryName" placeholder="Nama Kostory">
-  <button class="btn-green" onclick="addKostory()">+ Kostory</button>
 
+  <!-- INPUT -->
+  <input id="kostoryInput" placeholder="Nama Kostory">
+  <button class="green" onclick="addKostory()">+ Kostory</button>
+
+  <!-- LIST -->
   <div id="kostoryList" class="list"></div>
 </div>
 
-<!-- ===== HARGA SATUAN ===== -->
+<!-- ===== HARGA ===== -->
 <div class="card">
   <h2>Harga Satuan</h2>
 
+  <!-- INPUT -->
   <input id="itemName" placeholder="Nama item (contoh: Mengurus Kost)">
   <input id="itemPrice" type="number" placeholder="Harga">
   <input id="itemUnit" placeholder="Satuan (orang / kg / unit)">
-  <button class="btn-green" onclick="addItem()">+ Item</button>
+  <button class="green" onclick="addItem()">+ Item</button>
 
+  <!-- LIST -->
   <div id="itemList" class="list"></div>
 </div>
 
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, remove, update } 
+import { getDatabase, ref, set, onValue, remove, update } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -128,21 +116,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ===== UTIL ===== */
-function makeKey(text){
-  return text.toLowerCase()
-    .replace(/[^a-z0-9]+/g,"_")
-    .replace(/^_|_$/g,"");
-}
+const makeKey = t => t.toLowerCase().replace(/[^a-z0-9]+/g,"_");
 
 /* ===== KOSTORY ===== */
-window.addKostory = () =>{
-  const name = kostoryName.value.trim();
+window.addKostory = ()=>{
+  const name = kostoryInput.value.trim();
   if(!name) return alert("Nama kosong");
-
-  const key = makeKey(name);
-  set(ref(db,"cabang/"+key),{nama:name});
-  kostoryName.value="";
+  set(ref(db,"cabang/"+makeKey(name)),{nama:name});
+  kostoryInput.value="";
 };
 
 onValue(ref(db,"cabang"),snap=>{
@@ -153,35 +134,23 @@ onValue(ref(db,"cabang"),snap=>{
       <div class="item">
         <b>${d.nama}</b>
         <div class="actions">
-          <button class="btn-red" onclick="delKostory('${c.key}')">hapus</button>
+          <button class="red" onclick="remove(ref(db,'cabang/${c.key}'))">hapus</button>
         </div>
       </div>`;
   });
 });
 
-window.delKostory = key=>{
-  if(confirm("Hapus kostory?"))
-    remove(ref(db,"cabang/"+key));
-};
-
 /* ===== HARGA ===== */
 window.addItem = ()=>{
-  const name=itemName.value.trim();
-  const price=Number(itemPrice.value);
-  const unit=itemUnit.value.trim();
+  const n=itemName.value.trim();
+  const p=Number(itemPrice.value);
+  const u=itemUnit.value.trim();
+  if(!n||!p||!u) return alert("Lengkapi data");
 
-  if(!name||!price||!unit) return alert("Lengkapi data");
-
-  const key=makeKey(name);
-  set(ref(db,"harga/"+key),{
-    nama:name,
-    harga:price,
-    satuan:unit
+  set(ref(db,"harga/"+makeKey(n)),{
+    nama:n,harga:p,satuan:u
   });
-
-  itemName.value="";
-  itemPrice.value="";
-  itemUnit.value="";
+  itemName.value=itemPrice.value=itemUnit.value="";
 };
 
 onValue(ref(db,"harga"),snap=>{
@@ -195,22 +164,16 @@ onValue(ref(db,"harga"),snap=>{
           <small>Rp ${d.harga.toLocaleString()} / ${d.satuan}</small>
         </div>
         <div class="actions">
-          <button class="btn-blue" onclick="editItem('${c.key}','${d.nama}',${d.harga},'${d.satuan}')">edit</button>
-          <button class="btn-red" onclick="delItem('${c.key}')">hapus</button>
+          <button class="blue" onclick="editHarga('${c.key}',${d.harga})">edit</button>
+          <button class="red" onclick="remove(ref(db,'harga/${c.key}'))">hapus</button>
         </div>
       </div>`;
   });
 });
 
-window.editItem=(key,n,h,s)=>{
-  const price=prompt("Harga",h);
-  if(price===null) return;
-  update(ref(db,"harga/"+key),{harga:Number(price)});
-};
-
-window.delItem=key=>{
-  if(confirm("Hapus item?"))
-    remove(ref(db,"harga/"+key));
+window.editHarga = (key,h)=>{
+  const v=prompt("Harga baru",h);
+  if(v!==null) update(ref(db,"harga/"+key),{harga:Number(v)});
 };
 </script>
 
