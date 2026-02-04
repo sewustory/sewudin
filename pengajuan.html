@@ -96,7 +96,18 @@ button {
         <option value="">Pilih Kostory</option>
       </select>
 
-      <input type="month" id="bulan">
+      <div style="display:flex;gap:16px;align-items:center">
+  <div>
+    <label style="font-weight:bold;margin-right:6px">Tahun:</label>
+    <select id="tahun"></select>
+  </div>
+
+  <div>
+    <label style="font-weight:bold;margin-right:6px">Bulan:</label>
+    <select id="bulan"></select>
+  </div>
+</div>
+
     </div>
 
     <table>
@@ -136,6 +147,39 @@ const firebaseConfig = {
   appId: "1:915734517079:web:e56543423814ce30e69a12"
 };
 
+const bulanSelect = document.getElementById("bulan");
+const tahunSelect = document.getElementById("tahun");
+
+const bulanList = [
+  { v: "01", n: "Januari" },
+  { v: "02", n: "Februari" },
+  { v: "03", n: "Maret" },
+  { v: "04", n: "April" },
+  { v: "05", n: "Mei" },
+  { v: "06", n: "Juni" },
+  { v: "07", n: "Juli" },
+  { v: "08", n: "Agustus" },
+  { v: "09", n: "September" },
+  { v: "10", n: "Oktober" },
+  { v: "11", n: "November" },
+  { v: "12", n: "Desember" }
+];
+
+// placeholder
+bulanSelect.innerHTML = `<option value="">Pilih Bulan</option>`;
+tahunSelect.innerHTML = `<option value="">Pilih Tahun</option>`;
+
+// isi bulan
+bulanList.forEach(b => {
+  bulanSelect.innerHTML += `<option value="${b.v}">${b.n}</option>`;
+});
+
+// isi tahun (mundur)
+const tahunNow = new Date().getFullYear();
+for (let t = tahunNow + 1; t >= tahunNow - 5; t--) {
+  tahunSelect.innerHTML += `<option value="${t}">${t}</option>`;
+}
+  
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
@@ -200,7 +244,8 @@ window.hitung = function () {
 
 /* ================= KIRIM ================= */
 window.kirimPengajuan = function () {
-  if (!kostorySelect.value || !bulan.value) {
+  if (!kostorySelect.value || !bulanSelect.value || !tahunSelect.value) {
+
     alert("Lengkapi data");
     return;
   }
@@ -226,14 +271,17 @@ window.kirimPengajuan = function () {
   }
 
   push(ref(db, "pengajuan"), {
-    kostory: kostorySelect.value,
-    bulan: bulan.value,
-    items,
-    total: items.reduce((a,b)=>a+b.subtotal,0),
-    status: "pending",
-    createdAt: Date.now(),
-    oleh: userData.email
-  });
+  kostory: kostorySelect.value,
+  bulan: `${tahun.value}-${bulan.value}`,
+  tahun: tahun.value,
+  namaBulan: bulan.options[bulan.selectedIndex].text,
+  items,
+  total: items.reduce((a,b)=>a+b.subtotal,0),
+  status: "pending",
+  createdAt: Date.now(),
+  oleh: userData.email
+});
+
 
   alert("Pengajuan terkirim");
   location.reload();
