@@ -84,12 +84,15 @@
 <body>
 <header>Admin Panel</header>
 
-<div style="padding:16px; max-width:900px; margin:auto;">
-  <button class="btn-blue" onclick="goToPengajuan()">
+<div style="padding:16px; max-width:900px; margin:auto; display:flex; gap:12px;">
+  <button class="btn-blue" onclick="goToListPengajuan()">
     📄 List Pengajuan
   </button>
-</div>
 
+  <button class="btn-green" onclick="goToRekapPengajuan()">
+    📊 Rekap Pembayaran
+  </button>
+</div>
 
 <div class="container">
 
@@ -224,8 +227,13 @@ window.hapusHarga = function (key) {
     remove(ref(db, "harga/" + key));
   }
 };
-  window.goToPengajuan = function () {
+  
+  window.goToListPengajuan = function () {
   location.href = "list-pengajuan.html";
+};
+
+window.goToRekapPengajuan = function () {
+  location.href = "rekap-pengajuan.html";
 };
 
 </script>
