@@ -1,90 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Kostory</title>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body{font-family:system-ui;background:#f1f5f9;margin:0}
-header{background:#020617;color:#fff;padding:16px}
-.section{padding:16px}
-.card{
-  background:#fff;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:14px;
+body{margin:0;background:#f1f5f9;font-family:Arial}
+header{
+  background:#020617;color:white;
+  padding:16px;font-size:18px;font-weight:bold;
 }
-input,select{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #cbd5e1;
-  margin-top:8px;
+.box{
+  background:white;margin:16px;padding:16px;border-radius:14px;
+}
+input,select,button{
+  width:100%;padding:12px;margin-top:10px;
+  border-radius:10px;border:1px solid #cbd5e1;
 }
 button{
-  margin-top:12px;
-  padding:14px;
-  width:100%;
-  border:none;
-  border-radius:10px;
-  background:#2563eb;
-  color:#fff;
-  font-weight:600;
+  background:#2563eb;color:white;
+  border:none;font-weight:bold;
 }
 </style>
 </head>
-<body>
 
+<body>
 <header>Admin Panel</header>
 
-<div class="section">
-
-<div class="card">
-  <b>Tambah Cabang</b>
-  <input id="namaCabang" placeholder="Nama cabang">
+<div class="box">
+  <h3>Tambah Cabang</h3>
+  <input id="cabangBaru" placeholder="Nama cabang">
   <button onclick="tambahCabang()">Tambah</button>
 </div>
 
-<div class="card">
-  <b>Update Harga</b>
-  <select id="cabang"></select>
-  <input id="kategori" placeholder="Kategori (contoh: laundry)">
+<div class="box">
+  <h3>Update Harga</h3>
+  <input id="kategori" placeholder="Kategori">
   <input id="harga" type="number" placeholder="Harga">
-  <button onclick="updateHarga()">Simpan</button>
+  <button onclick="simpanHarga()">Simpan</button>
 </div>
 
-</div>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
+  authDomain: "sewudin-543e0.firebaseapp.com",
+  databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sewudin-543e0"
+});
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const firebaseConfig={/* CONFIG */};
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-const auth=getAuth(app);
-
-onAuthStateChanged(auth,u=>{
+firebase.auth().onAuthStateChanged(u=>{
   if(!u) location.href="login.html";
 });
 
-get(ref(db,"cabang")).then(s=>{
-  cabang.innerHTML=Object.keys(s.val())
-    .map(k=>`<option value="${k}">${s.val()[k].nama}</option>`).join("");
-});
-
-window.tambahCabang=()=>{
-  const key=namaCabang.value.toLowerCase();
-  set(ref(db,"cabang/"+key),{nama:namaCabang.value});
+function tambahCabang(){
+  const nama = cabangBaru.value.toLowerCase();
+  firebase.database().ref("cabang/"+nama).set({nama});
   alert("Cabang ditambahkan");
 }
 
-window.updateHarga=()=>{
-  update(ref(db,`harga/${cabang.value}`),{
-    [kategori.value]:Number(harga.value)
-  });
-  alert("Harga diperbarui");
+function simpanHarga(){
+  firebase.database().ref("harga/"+kategori.value)
+    .set(Number(harga.value));
+  alert("Harga disimpan");
 }
 </script>
 </body>
