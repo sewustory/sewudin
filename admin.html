@@ -1,181 +1,222 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel</title>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,sans-serif;
-  background:#f4f6f8;
-}
-header{
-  background:#020617;
-  color:#fff;
-  padding:16px;
-  font-size:20px;
-  font-weight:600;
-}
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:16px;
-}
-.card{
-  background:#fff;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:20px;
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
-}
-h2{margin:0 0 12px}
-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #d1d5db;
-  margin-bottom:10px;
-  font-size:15px;
-}
-button{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  font-weight:600;
-  cursor:pointer;
-}
-.green{background:#22c55e;color:#fff}
-.blue{background:#2563eb;color:#fff}
-.red{background:#ef4444;color:#fff}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+    }
+    header {
+      background: #050b1f;
+      color: #fff;
+      padding: 18px 24px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .container {
+      padding: 24px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.05);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-green { background: #22c55e; color: #fff; }
+    .btn-blue { background: #2563eb; color: #fff; }
+    .btn-red { background: #ef4444; color: #fff; }
 
-.list{
-  margin-top:16px;
-}
-.item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #e5e7eb;
-  margin-bottom:10px;
-}
-.item small{color:#6b7280}
-.actions button{margin-left:6px}
-</style>
+    .list {
+      margin-top: 16px;
+    }
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .price-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price-info b {
+      font-size: 16px;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
-
 <header>Admin Panel</header>
 
 <div class="container">
 
-<!-- ===== KOSTORY ===== -->
-<div class="card">
-  <h2>Kostory</h2>
+  <!-- KOSTORY -->
+  <div class="card">
+    <h2>Kostory</h2>
+    <input id="kostoryInput" placeholder="Nama Kostory">
+    <button class="btn-green" onclick="addKostory()">+ Kostory</button>
 
-  <!-- INPUT -->
-  <input id="kostoryInput" placeholder="Nama Kostory">
-  <button class="green" onclick="addKostory()">+ Kostory</button>
+    <div id="kostoryList" class="list"></div>
+  </div>
 
-  <!-- LIST -->
-  <div id="kostoryList" class="list"></div>
-</div>
+  <!-- HARGA SATUAN -->
+  <div class="card">
+    <h2>Harga Satuan</h2>
 
-<!-- ===== HARGA ===== -->
-<div class="card">
-  <h2>Harga Satuan</h2>
+    <input id="itemNama" placeholder="Nama item (contoh: Mengurus Kost)">
+    <input id="itemHarga" type="number" placeholder="Harga">
+    <input id="itemSatuan" placeholder="Satuan (orang / kg / unit)">
+    <button class="btn-green" onclick="addHarga()">+ Item</button>
 
-  <!-- INPUT -->
-  <input id="itemName" placeholder="Nama item (contoh: Mengurus Kost)">
-  <input id="itemPrice" type="number" placeholder="Harga">
-  <input id="itemUnit" placeholder="Satuan (orang / kg / unit)">
-  <button class="green" onclick="addItem()">+ Item</button>
-
-  <!-- LIST -->
-  <div id="itemList" class="list"></div>
-</div>
+    <div id="hargaList" style="margin-top:16px"></div>
+  </div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, remove, update } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, set, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
   databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sewudin-543e0"
+  projectId: "sewudin-543e0",
+  storageBucket: "sewudin-543e0.appspot.com",
+  messagingSenderId: "915734517079",
+  appId: "1:915734517079:web:e56543423814ce30e69a12"
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getDatabase(app);
 
-const makeKey = t => t.toLowerCase().replace(/[^a-z0-9]+/g,"_");
+/* ================= AUTH GUARD ================= */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) location.href = "login.html";
 
-/* ===== KOSTORY ===== */
-window.addKostory = ()=>{
-  const name = kostoryInput.value.trim();
-  if(!name) return alert("Nama kosong");
-  set(ref(db,"cabang/"+makeKey(name)),{nama:name});
-  kostoryInput.value="";
+  const snap = await get(ref(db, "users/" + user.uid));
+  if (!snap.exists() || snap.val().role !== "admin") {
+    alert("Bukan admin");
+    location.href = "login.html";
+  }
+});
+
+/* ================= KOSTORY ================= */
+window.addKostory = function () {
+  const nama = kostoryInput.value.trim();
+  if (!nama) return;
+
+  set(ref(db, "cabang/" + nama.toLowerCase()), {
+    nama: nama
+  });
+  kostoryInput.value = "";
 };
 
-onValue(ref(db,"cabang"),snap=>{
-  kostoryList.innerHTML="";
-  snap.forEach(c=>{
-    const d=c.val();
-    kostoryList.innerHTML+=`
-      <div class="item">
-        <b>${d.nama}</b>
-        <div class="actions">
-          <button class="red" onclick="remove(ref(db,'cabang/${c.key}'))">hapus</button>
-        </div>
-      </div>`;
+onValue(ref(db, "cabang"), snap => {
+  kostoryList.innerHTML = "";
+  snap.forEach(c => {
+    const key = c.key;
+    kostoryList.innerHTML += `
+      <div class="list-item">
+        <b>${c.val().nama}</b>
+        <button class="btn-red" onclick="hapusKostory('${key}')">delete</button>
+      </div>
+    `;
   });
 });
 
-/* ===== HARGA ===== */
-window.addItem = ()=>{
-  const n=itemName.value.trim();
-  const p=Number(itemPrice.value);
-  const u=itemUnit.value.trim();
-  if(!n||!p||!u) return alert("Lengkapi data");
-
-  set(ref(db,"harga/"+makeKey(n)),{
-    nama:n,harga:p,satuan:u
-  });
-  itemName.value=itemPrice.value=itemUnit.value="";
+window.hapusKostory = function (key) {
+  if (confirm("Hapus kostory?")) {
+    remove(ref(db, "cabang/" + key));
+  }
 };
 
-onValue(ref(db,"harga"),snap=>{
-  itemList.innerHTML="";
-  snap.forEach(c=>{
-    const d=c.val();
-    itemList.innerHTML+=`
-      <div class="item">
+/* ================= HARGA ================= */
+window.addHarga = function () {
+  const nama = itemNama.value.trim();
+  const harga = Number(itemHarga.value);
+  const satuan = itemSatuan.value.trim();
+  if (!nama || !harga || !satuan) return;
+
+  push(ref(db, "harga"), {
+    nama, harga, satuan
+  });
+
+  itemNama.value = "";
+  itemHarga.value = "";
+  itemSatuan.value = "";
+};
+
+onValue(ref(db, "harga"), snap => {
+  hargaList.innerHTML = "";
+  snap.forEach(h => {
+    const v = h.val();
+    hargaList.innerHTML += `
+      <div class="price-card">
+        <div class="price-info">
+          <b>${v.nama}</b><br>
+          <span class="muted">Rp ${v.harga.toLocaleString()} / ${v.satuan}</span>
+        </div>
         <div>
-          <b>${d.nama}</b><br>
-          <small>Rp ${d.harga.toLocaleString()} / ${d.satuan}</small>
+          <button class="btn-blue" onclick="editHarga('${h.key}')">edit</button>
+          <button class="btn-red" onclick="hapusHarga('${h.key}')">hapus</button>
         </div>
-        <div class="actions">
-          <button class="blue" onclick="editHarga('${c.key}',${d.harga})">edit</button>
-          <button class="red" onclick="remove(ref(db,'harga/${c.key}'))">hapus</button>
-        </div>
-      </div>`;
+      </div>
+    `;
   });
 });
 
-window.editHarga = (key,h)=>{
-  const v=prompt("Harga baru",h);
-  if(v!==null) update(ref(db,"harga/"+key),{harga:Number(v)});
+window.editHarga = async function (key) {
+  const snap = await get(ref(db, "harga/" + key));
+  const v = snap.val();
+  const hargaBaru = prompt("Harga baru", v.harga);
+  if (!hargaBaru) return;
+  update(ref(db, "harga/" + key), { harga: Number(hargaBaru) });
+};
+
+window.hapusHarga = function (key) {
+  if (confirm("Hapus item harga?")) {
+    remove(ref(db, "harga/" + key));
+  }
 };
 </script>
-
 </body>
 </html>
