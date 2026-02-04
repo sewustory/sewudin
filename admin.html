@@ -3,134 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin Panel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#f1f5f9}
-header{background:#020617;color:white;padding:16px;font-size:18px;font-weight:bold}
-.container{padding:16px}
-.card{background:white;padding:16px;border-radius:14px;margin-bottom:16px}
-h3{margin-top:0}
-.list-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
-.actions button{margin-left:6px;padding:4px 8px;border:none;border-radius:6px;cursor:pointer}
-.edit{background:#eab308}
-.delete{background:#ef4444;color:white}
-.add{background:#22c55e;border:none;padding:8px 12px;border-radius:8px}
-input{padding:8px;border-radius:8px;border:1px solid #cbd5e1}
-.hidden{display:none}
+body{
+  font-family:Arial;
+  background:#f1f5f9;
+  margin:0;
+}
+header{
+  background:#020617;
+  color:#fff;
+  padding:16px;
+  font-size:20px;
+}
+.card{
+  background:#fff;
+  margin:16px;
+  padding:16px;
+  border-radius:10px;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:6px 0;
+}
+input{
+  padding:8px;
+  width:100%;
+  margin:6px 0;
+}
+button{
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.add{background:#22c55e;color:#fff}
+.edit{background:#2563eb;color:#fff}
+.del{background:#ef4444;color:#fff}
+.group{
+  margin-top:14px;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
+
 <header>Admin Panel</header>
-<div class="container">
 
-<!-- CABANG -->
 <div class="card">
-<h3>Kostory</h3>
-<div id="listCabang"></div>
-
-<input id="cabangBaru" placeholder="Nama kostory baru">
-<button class="add" onclick="tambahCabang()">+ Kostory</button>
+  <h3>Kostory</h3>
+  <input id="cabangInput" placeholder="Nama Kostory">
+  <button class="add" onclick="tambahCabang()">+ Kostory</button>
+  <div id="cabangList"></div>
 </div>
 
-<!-- HARGA -->
 <div class="card">
-<h3>Harga Satuan</h3>
-<div id="listHarga"></div>
-
-<hr>
-<input id="keyBaru" placeholder="Key (contoh: laundry)">
-<input id="labelBaru" placeholder="Nama kategori">
-<input id="satuanBaru" placeholder="Satuan">
-<input id="hargaBaru" type="number" placeholder="Harga">
-<button class="add" onclick="tambahKategori()">+ Kategori</button>
+  <h3>Harga Satuan</h3>
+  <div id="hargaList"></div>
+  <button class="add" onclick="tambahItem()">+ item</button>
 </div>
 
-</div>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+/* ================= FIREBASE CONFIG ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
   authDomain: "sewudin-543e0.firebaseapp.com",
   databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sewudin-543e0"
+  projectId: "sewudin-543e0",
+  storageBucket: "sewudin-543e0.appspot.com",
+  messagingSenderId: "915734517079",
+  appId: "1:915734517079:web:e56543423814ce30e69a12"
 });
 
-firebase.auth().onAuthStateChanged(u=>{
-  if(!u) location.href="login.html";
-});
+const db = firebase.database();
 
-// ===== CABANG =====
-firebase.database().ref("cabang").on("value",snap=>{
-  listCabang.innerHTML="";
+/* ================= CABANG ================= */
+const cabangRef = db.ref("cabang");
+
+cabangRef.on("value", snap=>{
+  cabangList.innerHTML="";
   snap.forEach(c=>{
-    const k=c.key;
-    const n=c.val().nama;
-    listCabang.innerHTML+=`
-      <div class="list-row">
-        <div>${n}</div>
-        <div class="actions">
-          <button class="edit" onclick="editCabang('${k}','${n}')">edit</button>
-          <button class="delete" onclick="hapusCabang('${k}')">delete</button>
-        </div>
+    cabangList.innerHTML += `
+      <div class="row">
+        ${c.val().nama}
+        <span>
+          <button class="edit" onclick="editCabang('${c.key}')">edit</button>
+          <button class="del" onclick="hapusCabang('${c.key}')">delete</button>
+        </span>
       </div>`;
   });
 });
 
 function tambahCabang(){
-  const n=cabangBaru.value.trim();
-  if(!n)return;
-  firebase.database().ref("cabang/"+n.toLowerCase()).set({nama:n});
-  cabangBaru.value="";
+  const nama = cabangInput.value.trim();
+  if(!nama) return;
+  cabangRef.child(nama.toLowerCase()).set({ nama });
+  cabangInput.value="";
 }
 
-function editCabang(k,n){
-  const baru=prompt("Ubah nama",n);
-  if(!baru)return;
-  firebase.database().ref("cabang/"+k).set({nama:baru});
+function editCabang(key){
+  const n = prompt("Nama baru:");
+  if(n) cabangRef.child(key).set({ nama:n });
 }
 
-function hapusCabang(k){
-  if(confirm("Hapus kostory?"))
-    firebase.database().ref("cabang/"+k).remove();
+function hapusCabang(key){
+  if(confirm("Hapus kostory ini?")){
+    cabangRef.child(key).remove();
+  }
 }
 
-// ===== HARGA =====
-firebase.database().ref("harga").on("value",snap=>{
-  listHarga.innerHTML="";
+/* ================= HARGA ================= */
+const hargaRef = db.ref("harga");
+
+hargaRef.on("value", snap=>{
+  hargaList.innerHTML="";
   snap.forEach(h=>{
-    const k=h.key,v=h.val();
-    listHarga.innerHTML+=`
-      <div class="list-row">
+    const v = h.val();
+    hargaList.innerHTML += `
+      <div class="row" id="h-${h.key}">
         <div>
-          <b>${v.label}</b><br>
-          Rp ${v.harga.toLocaleString()} /${v.satuan}
+          ${v.label} /${v.satuan}<br>
+          Rp ${v.harga || "-"}
         </div>
-        <div class="actions">
-          <button class="edit" onclick="editHarga('${k}',${v.harga})">update</button>
-        </div>
+        <button class="edit" onclick="editHarga('${h.key}')">update</button>
       </div>`;
   });
 });
 
-function editHarga(k,h){
-  const baru=prompt("Harga baru",h);
-  if(!baru)return;
-  firebase.database().ref("harga/"+k+"/harga").set(Number(baru));
+function editHarga(key){
+  hargaRef.child(key).once("value").then(s=>{
+    const v=s.val();
+    document.getElementById("h-"+key).innerHTML=`
+      <input type="number" id="harga-${key}" value="${v.harga}">
+      <button class="add" onclick="simpanHarga('${key}')">Simpan</button>`;
+  });
 }
 
-function tambahKategori(){
-  firebase.database().ref("harga/"+keyBaru.value).set({
-    label:labelBaru.value,
-    satuan:satuanBaru.value,
-    harga:Number(hargaBaru.value)
-  });
-  keyBaru.value=labelBaru.value=satuanBaru.value=hargaBaru.value="";
+function simpanHarga(key){
+  const val = document.getElementById("harga-"+key).value;
+  hargaRef.child(key+"/harga").set(+val);
+}
+
+function tambahItem(){
+  const key = prompt("key (tanpa spasi, contoh: laundry)");
+  const label = prompt("nama item");
+  const satuan = prompt("satuan (kg, hari, unit)");
+  if(!key||!label||!satuan) return;
+  hargaRef.child(key).set({ label, satuan, harga:0 });
 }
 </script>
 </body>
