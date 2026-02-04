@@ -1,137 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
 <title>Pengajuan Bonus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-body{font-family:system-ui;background:#f8fafc;margin:0}
-header{background:#0f172a;color:#fff;padding:16px;font-weight:600}
-.section{padding:16px}
-.card{
-  background:#fff;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 4px 12px rgba(0,0,0,.06)
-}
-.row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-input{
-  width:80px;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid #cbd5f5;
-}
-.total{
-  font-weight:700;
-  font-size:18px;
-  text-align:right;
-  margin-top:20px
+body{margin:0;background:#f8fafc;font-family:Arial}
+header{background:#020617;color:white;padding:16px;font-weight:bold}
+.box{background:white;margin:16px;padding:16px;border-radius:14px}
+select,input,button{
+  width:100%;padding:12px;margin-top:10px;
+  border-radius:10px;border:1px solid #cbd5e1;
 }
 button{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:14px;
-  background:#22c55e;
-  color:#fff;
-  font-weight:700;
+  background:#22c55e;border:none;font-weight:bold;
 }
-small{color:#64748b}
 </style>
 </head>
-<body>
 
+<body>
 <header>Pengajuan Bonus</header>
 
-<div class="section">
-  <div class="card">
-    Bulan:
-    <input type="month" id="bulan">
-    <br><br>
-    Kostory:
-    <select id="cabang"></select>
-  </div>
+<div class="box">
+  <label>Kostory</label>
+  <select id="cabang"></select>
 
-  <div id="form"></div>
+  <label>Volume</label>
+  <input id="volume" type="number">
 
-  <div class="total">TOTAL: Rp <span id="grand">0</span></div>
-  <button onclick="submitData()">KIRIM PENGAJUAN</button>
+  <button onclick="kirim()">Kirim Pengajuan</button>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCV0kqdWP7rNx8KSONHNgfz29NP6Jv5yUM",
+  authDomain: "sewudin-543e0.firebaseapp.com",
+  databaseURL: "https://sewudin-543e0-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sewudin-543e0"
+});
 
-const firebaseConfig={/* CONFIG */};
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-const auth=getAuth(app);
-
-let hargaData={}, totalMap={};
-
-onAuthStateChanged(auth,u=>{
+firebase.auth().onAuthStateChanged(u=>{
   if(!u) location.href="login.html";
 });
 
-get(ref(db,"cabang")).then(s=>{
-  cabang.innerHTML=Object.keys(s.val())
-    .map(k=>`<option value="${k}">${s.val()[k].nama}</option>`).join("");
+firebase.database().ref("cabang").on("value",snap=>{
+  cabang.innerHTML="";
+  snap.forEach(c=>{
+    cabang.innerHTML+=`<option>${c.val().nama}</option>`;
+  });
 });
 
-cabang.onchange=()=>{
-  get(ref(db,"harga/"+cabang.value)).then(s=>{
-    hargaData=s.val();
-    render();
-  });
-}
-
-function render(){
-  form.innerHTML="";
-  totalMap={};
-
-  for(const k in hargaData){
-    if(typeof hargaData[k]==="object"){
-      ["harian","mingguan","bulanan"].forEach(t=>{
-        row(`Checkin ${t}`,k+"_"+t,hargaData[k][t]);
-      });
-    }else{
-      row(k,k,hargaData[k]);
-    }
-  }
-}
-
-function row(label,key,harga){
-  const d=document.createElement("div");
-  d.className="card";
-  d.innerHTML=`
-    <b>${label}</b>
-    <div class="row">
-      <input type="number" min="0" value="0" oninput="calc('${key}',this.value,${harga})">
-      <small>Rp ${harga.toLocaleString()}</small>
-      <b id="t_${key}">0</b>
-    </div>`;
-  form.appendChild(d);
-}
-
-window.calc=(k,v,h)=>{
-  const t=v*h;
-  totalMap[k]=t;
-  document.getElementById("t_"+k).innerText="Rp "+t.toLocaleString();
-  document.getElementById("grand").innerText=
-    Object.values(totalMap).reduce((a,b)=>a+b,0).toLocaleString();
-}
-
-window.submitData=()=>{
-  push(ref(db,"pengajuan"),{
-    bulan:bulan.value,
-    cabang:cabang.value,
-    total:Object.values(totalMap).reduce((a,b)=>a+b,0),
-    detail:totalMap,
-    status:"pending",
-    createdAt:Date.now()
-  }).then(()=>alert("Pengajuan dikirim"));
+function kirim(){
+  alert("Pengajuan terkirim (dummy)");
 }
 </script>
 </body>
