@@ -53,20 +53,31 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = { /* ISI CONFIG */ };
+const firebaseConfig = {
+  // CONFIG KAMU
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-window.login = ()=>{
-  signInWithEmailAndPassword(auth,email.value,password.value)
-  .then(res=>{
-    get(ref(db,"users/"+res.user.uid)).then(snap=>{
-      const role=snap.val().role;
-      location.href= role==="admin" ? "admin.html" : "pengajuan.html";
+window.login = () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(res => {
+      return get(ref(db, "users/" + res.user.uid));
     })
-  }).catch(e=>alert("Login gagal"));
-}
+    .then(snap => {
+      const role = snap.val().role;
+      if (role === "admin") {
+        location.href = "admin.html";
+      } else {
+        location.href = "pengajuan.html";
+      }
+    })
+    .catch(err => alert(err.message));
+};
 </script>
-</body>
-</html>
+
