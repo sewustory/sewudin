@@ -67,7 +67,8 @@ tfoot td{
 
 <div class="header">
   <h1>Rekap Pengajuan</h1>
-  <button onclick="window.print()">🖨 Cetak PDF</button>
+  <button onclick="cetakPDF()">🖨 Cetak PDF</button>
+
 </div>
 
 <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center">
@@ -281,6 +282,44 @@ loadRekap();
 
 document.getElementById("filterTahun").addEventListener("change", loadRekap);
 document.getElementById("filterBulan").addEventListener("change", loadRekap);
+window.cetakPDF = function () {
+  const bulanSelect = document.getElementById("filterBulan");
+  const tahunSelect = document.getElementById("filterTahun");
+
+  const bulanMap = {
+    "01": "januari",
+    "02": "februari",
+    "03": "maret",
+    "04": "april",
+    "05": "mei",
+    "06": "juni",
+    "07": "juli",
+    "08": "agustus",
+    "09": "september",
+    "10": "oktober",
+    "11": "november",
+    "12": "desember"
+  };
+
+  const bulanVal = bulanSelect.value;
+  const tahunVal = tahunSelect.value;
+
+  let namaFile = "rekap pembayaran pengurus kostory";
+
+  if (bulanVal && tahunVal) {
+    namaFile += ` - ${bulanMap[bulanVal]} ${tahunVal}`;
+  } else if (tahunVal) {
+    namaFile += ` - ${tahunVal}`;
+  }
+
+  const oldTitle = document.title;
+  document.title = namaFile;
+
+  window.print();
+
+  // balikin judul setelah print
+  document.title = oldTitle;
+};
 
 </script>
 
