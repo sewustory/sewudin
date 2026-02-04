@@ -34,31 +34,43 @@ header {
   box-shadow: 0 6px 14px rgba(0,0,0,.06);
 }
 
-/* FORM */
 label {
-  display: block;
   font-weight: bold;
+  display: block;
   margin-bottom: 6px;
 }
 
-input, select {
-  width: 100%;
-  max-width: 320px;
+input {
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
-  background: #fff;
-  color: #111;
 }
 
-select[multiple] {
-  max-width: 100%;
-  height: 180px;
+.filter-group {
+  margin-bottom: 20px;
 }
 
-.form-group {
-  margin-bottom: 18px;
+/* KOSTORY CHIPS */
+.kostory-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kostory-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.kostory-btn.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }
 
 /* BUTTON */
@@ -108,13 +120,9 @@ th {
   font-weight: bold;
 }
 
-/* PRINT */
 @media print {
   header, .filter-card {
     display: none;
-  }
-  body {
-    background: #fff;
   }
 }
 </style>
@@ -129,14 +137,14 @@ th {
   <!-- FILTER -->
   <div class="card filter-card">
 
-    <div class="form-group">
+    <div class="filter-group">
       <label>Bulan & Tahun</label>
       <input type="month" id="bulanFilter">
     </div>
 
-    <div class="form-group">
+    <div class="filter-group">
       <label>Kostory</label>
-      <select id="kostoryFilter" multiple></select>
+      <div id="kostoryButtons" class="kostory-wrap"></div>
     </div>
 
     <div class="actions">
@@ -162,9 +170,7 @@ th {
       <tbody id="rekapBody"></tbody>
     </table>
 
-    <div class="total" id="grandTotal">
-      Total: Rp 0
-    </div>
+    <div class="total" id="grandTotal">Total: Rp 0</div>
   </div>
 
 </div>
@@ -187,11 +193,10 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let allData = [];
+let selectedKostory = [];
 
-/* default bulan sekarang */
 bulanFilter.value = new Date().toISOString().slice(0,7);
 
-/* load approved data */
 onValue(ref(db, "pengajuan"), snap => {
   allData = [];
   snap.forEach(p => {
@@ -200,15 +205,27 @@ onValue(ref(db, "pengajuan"), snap => {
       allData.push(d);
     }
   });
-  loadKostory();
+  renderKostoryButtons();
   render(allData);
 });
 
-function loadKostory() {
+function renderKostoryButtons() {
   const set = new Set(allData.map(d => d.kostory));
-  kostoryFilter.innerHTML = "";
+  kostoryButtons.innerHTML = "";
+
   set.forEach(k => {
-    kostoryFilter.innerHTML += `<option value="${k}">${k}</option>`;
+    const btn = document.createElement("button");
+    btn.textContent = k;
+    btn.className = "kostory-btn";
+    btn.onclick = () => {
+      btn.classList.toggle("active");
+      if (selectedKostory.includes(k)) {
+        selectedKostory = selectedKostory.filter(x => x !== k);
+      } else {
+        selectedKostory.push(k);
+      }
+    };
+    kostoryButtons.appendChild(btn);
   });
 }
 
@@ -219,9 +236,8 @@ window.applyFilter = function () {
     data = data.filter(d => d.bulan === bulanFilter.value);
   }
 
-  const selected = Array.from(kostoryFilter.selectedOptions).map(o => o.value);
-  if (selected.length > 0) {
-    data = data.filter(d => selected.includes(d.kostory));
+  if (selectedKostory.length > 0) {
+    data = data.filter(d => selectedKostory.includes(d.kostory));
   }
 
   render(data);
