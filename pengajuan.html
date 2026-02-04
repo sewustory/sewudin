@@ -112,6 +112,36 @@ button {
   th:nth-child(5),
   td:nth-child(5) { width: 24%; }   /* Subtotal */
 }
+  
+/* =======================
+   MOBILE FIX FILTER ATAS
+======================= */
+@media (max-width: 768px) {
+
+  /* Barisan filter */
+  .card > div:first-child {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Semua select full width */
+  select {
+    width: 100%;
+  }
+
+  /* Wrapper Tahun & Bulan */
+  .card > div:first-child > div {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  /* Label biar rapi */
+  label {
+    display: block;
+    margin-bottom: 4px;
+  }
+}
 
 </style>
 </head>
