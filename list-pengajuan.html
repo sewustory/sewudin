@@ -60,6 +60,11 @@ button {
   cursor: pointer;
   font-weight: bold;
 }
+  .delete {
+  background: #6b7280;
+  color: #fff;
+}
+
 .approve { background: #22c55e; color: #fff; }
 .reject { background: #ef4444; color: #fff; }
 </style>
@@ -160,6 +165,7 @@ function loadPengajuan() {
             <div style="margin-top:12px;text-align:right">
               <button class="approve" onclick="updateStatus('${p.key}','approved')">Approve</button>
               <button class="reject" onclick="updateStatus('${p.key}','rejected')">Reject</button>
+              <button class="delete" onclick="deletePengajuan('${p.key}')">Delete</button>
             </div>
           ` : ""}
         </div>
@@ -171,6 +177,13 @@ function loadPengajuan() {
 window.updateStatus = function (id, status) {
   update(ref(db, "pengajuan/" + id), { status });
 };
+  import { remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+window.deletePengajuan = function (id) {
+  if (!confirm("Yakin hapus pengajuan ini? Data akan hilang permanen.")) return;
+  remove(ref(db, "pengajuan/" + id));
+};
+
   window.kembali = function () {
   location.href = "pengajuan.html";
 };
