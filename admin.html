@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Kostory</title>
+
+<style>
+body{font-family:system-ui;background:#f1f5f9;margin:0}
+header{background:#020617;color:#fff;padding:16px}
+.section{padding:16px}
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:14px;
+  margin-bottom:14px;
+}
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #cbd5e1;
+  margin-top:8px;
+}
+button{
+  margin-top:12px;
+  padding:14px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<header>Admin Panel</header>
+
+<div class="section">
+
+<div class="card">
+  <b>Tambah Cabang</b>
+  <input id="namaCabang" placeholder="Nama cabang">
+  <button onclick="tambahCabang()">Tambah</button>
+</div>
+
+<div class="card">
+  <b>Update Harga</b>
+  <select id="cabang"></select>
+  <input id="kategori" placeholder="Kategori (contoh: laundry)">
+  <input id="harga" type="number" placeholder="Harga">
+  <button onclick="updateHarga()">Simpan</button>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig={/* CONFIG */};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const auth=getAuth(app);
+
+onAuthStateChanged(auth,u=>{
+  if(!u) location.href="login.html";
+});
+
+get(ref(db,"cabang")).then(s=>{
+  cabang.innerHTML=Object.keys(s.val())
+    .map(k=>`<option value="${k}">${s.val()[k].nama}</option>`).join("");
+});
+
+window.tambahCabang=()=>{
+  const key=namaCabang.value.toLowerCase();
+  set(ref(db,"cabang/"+key),{nama:namaCabang.value});
+  alert("Cabang ditambahkan");
+}
+
+window.updateHarga=()=>{
+  update(ref(db,`harga/${cabang.value}`),{
+    [kategori.value]:Number(harga.value)
+  });
+  alert("Harga diperbarui");
+}
+</script>
+</body>
+</html>
